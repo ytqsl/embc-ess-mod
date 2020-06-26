@@ -1,3 +1,5 @@
+﻿using EMBC.ESS.Domain.Common;
+using EMBC.ESS.Domain.Profiles;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -14,6 +16,11 @@ namespace EMBC.ESS
         {
             services.AddRazorPages();
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
+            services.AddSingleton<IEventStore, InMemoryEventStore>();
+            services.AddTransient<IRepository<Profile>, Repository<Profile>>();
+            services.AddTransient<IBus, JasperServiceBus>();
+            services.AddTransient<IEventPublisher, JasperServiceBus>();
+            services.AddTransient<ICommandSender, JasperServiceBus>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

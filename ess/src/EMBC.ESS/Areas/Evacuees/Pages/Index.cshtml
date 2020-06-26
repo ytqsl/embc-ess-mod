@@ -1,11 +1,14 @@
 ﻿@page
-@model EMBC.ESS.Areas.Evacuees.Pages.IndexModel
+@model IndexModel
 
-    <article>
-        <h1>Profile</h1>
-        <ul>
-            <li>Name: <span>@Model.ProfileView.Name</span></li>
-            <li>DoB: <span>@Model.ProfileView.DateOfBirth</span></li>
-            <li>Address: <span>@Model.ProfileView.Address</span></li>
-        </ul>
-    </article>
+    <h1>Evacuees Portal</h1>
+    <nav>
+        <section>
+            Click here to&nbsp;
+            <a asp-page="Register">Register</a>
+        </section>
+        <section>
+            Click here to&nbsp;
+            <a asp-page="Login">Login</a>
+        </section>
+    </nav>

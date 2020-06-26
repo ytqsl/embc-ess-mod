@@ -1,0 +1,184 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
+
+namespace EMBC.ESS.Domain.Common
+{
+    #region Messaging
+
+    public interface IMessage { }
+
+    public interface ICommand : IMessage { }
+
+    public interface IRequest<TResponse> : ICommand { }
+
+    public abstract class Event : IMessage
+    {
+        public long Version;
+    }
+
+    public interface ICommandSender
+    {
+        Task SendAsync<T>(T command) where T : ICommand;
+
+        Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> command);
+    }
+
+    public interface IEventPublisher
+    {
+        Task PublishAsync<T>(T evt) where T : Event;
+    }
+
+    public interface IBus : ICommandSender, IEventPublisher { }
+
+    #endregion Messaging
+
+    #region Event sourcing
+
+    public interface IEventStore
+    {
+        Task SaveEventsAsync(Guid eventStreamId, string eventStreamType, IEnumerable<Event> events, long expectedVersion);
+
+        Task<IEnumerable<Event>> GetEventsAsync(Guid eventStreamId);
+    }
+
+#pragma warning disable CA1032, S3925
+
+    public class StreamNotFoundException : Exception
+    {
+        public StreamNotFoundException(Guid streamId)
+            : base($"StreamId {streamId}")
+        {
+        }
+    }
+
+    public class ConcurrencyException : Exception
+    {
+        public ConcurrencyException(Guid streamId, long expectedVersion, long actualVersion)
+            : base($"Stream {streamId} expected to be in version {expectedVersion} but was version {actualVersion}")
+        {
+        }
+    }
+
+#pragma warning restore CA1032, S3925
+
+    #endregion Event sourcing
+
+    #region Domain
+
+    public interface IRepository<TItem> where TItem : AggregateRoot
+    {
+        Task SaveAsync(TItem aggregate, long expectedVersion);
+
+        Task SaveAsync(TItem aggregate);
+
+        Task<TItem> GetByIdAsync(Guid id);
+    }
+
+    public abstract class AggregateRoot
+    {
+        private readonly List<Event> changes = new List<Event>();
+        public Guid Id { get; protected set; }
+        public long Version { get; private set; }
+
+        internal IEnumerable<Event> GetUncommittedChanges()
+        {
+            if (Id.Equals(default))
+            {
+                throw new InvalidOperationException($"Id was not set for aggregate, cannot persist it");
+            }
+            return changes;
+        }
+
+        internal void MarkChangesAsCommitted()
+        {
+            changes.Clear();
+        }
+
+        internal void LoadsFromHistory(IEnumerable<Event> history)
+        {
+            foreach (var e in history)
+            {
+                ApplyChange(e, false);
+                Version = e.Version;
+            }
+        }
+
+        protected void ApplyChange(Event @event)
+        {
+            ApplyChange(@event, true);
+        }
+
+        private void ApplyChange(Event @event, bool isNew)
+        {
+            //Call internal Apply(event) methods in the aggregate
+            this.GetType().InvokeMember("Apply", BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.NonPublic, null, this, new object[] { @event });
+            if (isNew)
+            {
+                changes.Add(@event);
+            }
+        }
+    }
+
+    public class Repository<TItem> : IRepository<TItem> where TItem : AggregateRoot
+    {
+        private readonly IEventStore _storage;
+        private readonly Func<Task<TItem>> factory;
+
+        public Repository(IEventStore storage) : this(storage, () => Activator.CreateInstance<TItem>())
+        {
+        }
+
+        public Repository(IEventStore storage, Func<TItem> factory) : this(storage, () => Task.FromResult(factory()))
+        {
+        }
+
+        public Repository(IEventStore storage, Func<Task<TItem>> factory)
+        {
+            _storage = storage;
+            this.factory = factory;
+        }
+
+        public async Task SaveAsync(TItem aggregate, long expectedVersion)
+        {
+            await _storage.SaveEventsAsync(aggregate.Id, aggregate.GetType().FullName, aggregate.GetUncommittedChanges(), expectedVersion);
+            aggregate.MarkChangesAsCommitted();
+        }
+
+        public async Task SaveAsync(TItem aggregate)
+        {
+            await SaveAsync(aggregate, aggregate.Version);
+        }
+
+        public async Task<TItem> GetByIdAsync(Guid id)
+        {
+            var aggregate = await factory();
+            var e = await _storage.GetEventsAsync(id);
+            aggregate.LoadsFromHistory(e);
+            return aggregate;
+        }
+    }
+
+    public abstract class DomainException : ApplicationException
+    {
+        protected DomainException()
+        {
+        }
+
+        protected DomainException(string message) : base(message)
+        {
+        }
+
+        protected DomainException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        protected DomainException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+    }
+
+    #endregion Domain
+}

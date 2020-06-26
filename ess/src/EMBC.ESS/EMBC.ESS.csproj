@@ -1,17 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FormFactory.AspNetCore" Version="5.0.67" />
+    <PackageReference Include="Jasper" Version="1.1.4" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.3" />
+    <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Areas\Evacuees\Controllers\" />
     <Folder Include="Areas\Evacuees\Data\" />
+    <Folder Include="Areas\Supporters\Controllers\" />
+    <Folder Include="Areas\Supporters\Data\" />
+    <Folder Include="Areas\Supporters\Models\" />
   </ItemGroup>
-
 </Project>
