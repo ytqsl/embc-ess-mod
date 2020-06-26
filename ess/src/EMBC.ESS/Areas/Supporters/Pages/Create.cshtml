@@ -1,0 +1,28 @@
+﻿@page
+@model CreateModel
+<h1>Register a new evacuee</h1>
+<hr />
+<form asp-antiforgery="true" method="post">
+    <p asp-validation-summary="ModelOnly"></p>
+    <p>
+        <label asp-for="Command.Name"></label><br />
+        <input asp-for="Command.Name" />
+        <span asp-validation-for="Command.Name"></span>
+    </p>
+    <p>
+        <label asp-for="Command.Address"></label><br />
+        <input asp-for="Command.Address" />
+        <span asp-validation-for="Command.Address"></span>
+    </p>
+    <p>
+        <label asp-for="Command.DateOfBirth"></label><br />
+        <input asp-for="Command.DateOfBirth" />
+        <span asp-validation-for="Command.DateOfBirth"></span>
+    </p>
+    <p>
+        <label asp-for="Command.Identity"></label><br />
+        <input asp-for="Command.Identity" />
+        <span asp-validation-for="Command.Identity"></span>
+    </p>
+    <input type="submit" value="Register" />
+</form>

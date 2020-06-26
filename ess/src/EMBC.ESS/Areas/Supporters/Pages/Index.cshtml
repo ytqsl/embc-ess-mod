@@ -1,0 +1,56 @@
+﻿@page
+@model IndexModel
+<h1>Profile search</h1>
+<hr />
+<form asp-antiforgery="false" method="get">
+    <h4>Search by</h4>
+    <span>
+        First Name
+        <input type="text" name="firstName" />
+    </span>
+    <span>
+        Last Name
+        <input type="text" name="lastName" />
+    </span>
+    <span>
+        Date of Birth
+        <input type="text" name="dateOfBirth" />
+    </span>
+    <input type="submit" value="Search" />
+</form>
+@{
+    if (Model.Profiles != null)
+    {
+        if (Model.Profiles.Count() == 0)
+        {
+            <p>No profiles found</p>
+        }
+        else
+        {
+            <h3>Found profiles</h3>
+            <hr />
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date of Birth</th>
+                        <th>Address</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var profile in Model.Profiles)
+                    {
+                        <tr>
+                            <td>@profile.Name</td>
+                            <td>@profile.DateOfBirth</td>
+                            <td>@profile.Address</td>
+                            <td><a asp-page="View" asp-route-id="@profile.Id">View</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <a role="button" asp-page="Create">Create New Profile</a>
+        }
+    }
+}
