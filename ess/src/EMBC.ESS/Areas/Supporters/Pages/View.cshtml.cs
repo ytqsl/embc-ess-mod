@@ -1,4 +1,8 @@
-﻿using EMBC.ESS.Areas.Supporters.Models;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
+using EMBC.ESS.Domain.Common;
+using EMBC.ESS.Domain.Profiles;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -6,12 +10,40 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 {
     public class ViewModel : PageModel
     {
-        [ViewData]
-        public Profile ProfileView { get; set; }
+        private readonly IRepository<Profile> repository;
 
-        public IActionResult OnGet(string id)
+        public class ProfileViewModel
         {
-            ProfileView = new Profile { Id = id, Name = "1", Address = "2", DateOfBirth = "3", Identity = "123" };
+            public string Id { get; set; }
+
+            [Display(Name = "Full Name")]
+            public string Name { get; set; }
+
+            [Display(Name = "Date of Birth")]
+            public string DateOfBirth { get; set; }
+
+            [Display(Name = "home Address")]
+            public string Address { get; set; }
+        }
+
+        public ViewModel(IRepository<Profile> repository)
+        {
+            this.repository = repository;
+        }
+
+        [ViewData]
+        public ProfileViewModel Data { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(string id)
+        {
+            var profile = await repository.GetByIdAsync(Guid.Parse(id));
+            Data = new ProfileViewModel
+            {
+                Id = profile.Id.ToString(),
+                Address = profile.Address,
+                DateOfBirth = profile.DateOfBirth,
+                Name = profile.Name
+            };
             return Page();
         }
     }

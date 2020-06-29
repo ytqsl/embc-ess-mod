@@ -21,6 +21,7 @@ namespace EMBC.ESS
             services.AddTransient<IBus, JasperServiceBus>();
             services.AddTransient<IEventPublisher, JasperServiceBus>();
             services.AddTransient<ICommandSender, JasperServiceBus>();
+            services.AddTransient<IProfileReadModelRepository, ProfileReadModelRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

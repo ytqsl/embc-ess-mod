@@ -9,8 +9,19 @@
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
+    <header>
+        @RenderSection("header")
+    </header>
+
+    <nav>
+        @RenderSection("nav")
+    </nav>
     <main>
         @RenderBody()
     </main>
+
+    <footer>
+        @RenderSection("footer")
+    </footer>
 </body>
 </html>

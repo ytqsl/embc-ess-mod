@@ -1,56 +1,61 @@
 ﻿@page
 @model IndexModel
-<h1>Profile search</h1>
-<hr />
-<form asp-antiforgery="false" method="get">
+<h2>Profile search</h2>
+<section>
+    <a role="button" asp-page="Create">Create New Profile</a>
+</section>
+<section>
     <h4>Search by</h4>
-    <span>
-        First Name
-        <input type="text" name="firstName" />
-    </span>
-    <span>
-        Last Name
-        <input type="text" name="lastName" />
-    </span>
-    <span>
-        Date of Birth
-        <input type="text" name="dateOfBirth" />
-    </span>
-    <input type="submit" value="Search" />
-</form>
-@{
-    if (Model.Profiles != null)
-    {
-        if (Model.Profiles.Count() == 0)
+    <form asp-antiforgery="false" method="get">
+        <span>
+            <label for="firstName">First Name:</label>
+            <input type="text" name="firstName" />
+        </span>
+        <span>
+            <label for="lastName">Last Name:</label>
+            <input type="text" name="lastName" />
+        </span>
+        <span>
+            <label for="dateOfBirth">Date of Birth:</label>
+            <input type="text" name="dateOfBirth" />
+        </span>
+        <span>
+            <input type="submit" value="Search" />
+        </span>
+    </form>
+</section>
+<section>
+    @{
+        if (Model.Profiles != null)
         {
-            <p>No profiles found</p>
-        }
-        else
-        {
-            <h3>Found profiles</h3>
-            <hr />
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Date of Birth</th>
-                        <th>Address</th>
-                        <th>&nbsp;</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var profile in Model.Profiles)
-                    {
+            if (Model.Profiles.Count() == 0)
+            {
+                <p>No profiles found</p>
+            }
+            else
+            {
+                <table>
+                    <thead>
                         <tr>
-                            <td>@profile.Name</td>
-                            <td>@profile.DateOfBirth</td>
-                            <td>@profile.Address</td>
-                            <td><a asp-page="View" asp-route-id="@profile.Id">View</a></td>
+                            <th>Name</th>
+                            <th>Date of Birth</th>
+                            <th>Address</th>
+                            <th>&nbsp;</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-            <a role="button" asp-page="Create">Create New Profile</a>
+                    </thead>
+                    <tbody>
+                        @foreach (var profile in Model.Profiles)
+                        {
+                            <tr>
+                                <td>@profile.Name</td>
+                                <td>@profile.DateOfBirth</td>
+                                <td>@profile.Address</td>
+                                <td><a asp-page="View" asp-route-id="@profile.Id">View</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         }
     }
-}
+</section>

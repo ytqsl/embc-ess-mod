@@ -1,25 +1,21 @@
-﻿:root {
+﻿/*:root {
     --c1: #0074d9;
     --c2: #eee;
     --c3: #fff;
     --c4: #000;
     --c5: #fff;
     --rc: 8px;
-}
+}*/
 
-main, footer {
+main, header, footer, nav {
     margin: 0 auto;
-    width: 60%;
+    width: 66%;
     text-align: left;
     padding: 0 20px;
 }
 
-section > section {
-    color: #fff;
-    background-color: var(--c1);
-    padding: 15px;
-    margin: 10px 8px 10px 8px;
-    text-align: center;
+main {
+    min-height: 200px;
 }
 
 @media (max-width: 481px) {
@@ -27,7 +23,7 @@ section > section {
         font-size: 18px
     }
 
-    main, footer {
+    main, header, footer, nav {
         width: 98%
     }
 
@@ -36,6 +32,15 @@ section > section {
         width: 100%;
         margin-left: 0;
     }
+}
+
+/*
+section > section {
+    color: #fff;
+    background-color: var(--c1);
+    padding: 15px;
+    margin: 10px 8px 10px 8px;
+    text-align: center;
 }
 
 .field-validation-error {

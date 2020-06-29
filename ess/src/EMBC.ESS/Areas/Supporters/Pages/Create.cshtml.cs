@@ -1,7 +1,7 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using EMBC.ESS.Utilities;
+using EMBC.ESS.Domain.Common;
+using EMBC.ESS.Domain.Profiles;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -9,7 +9,9 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 {
     public class CreateModel : PageModel
     {
-        public class CreateProfileCommand
+        private readonly ICommandSender bus;
+
+        public class Command
         {
             [Display(Name = "Full Name"), Required]
             public string Name { get; set; }
@@ -19,19 +21,20 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 
             [Display(Name = "Home Address"), Required]
             public string Address { get; set; }
-
-            [Display(Name = "BC Services Card Number")]
-            public string Identity { get; set; }
         }
 
-        public async Task<IActionResult> OnGetAsync()
+        public CreateModel(ICommandSender bus)
         {
-            await Task.CompletedTask;
+            this.bus = bus;
+        }
+
+        public IActionResult OnGet()
+        {
             return Page();
         }
 
         [BindProperty]
-        public CreateProfileCommand Command { get; set; }
+        public Command Data { get; set; }
 
         public async Task<IActionResult> OnPostAsync()
         {
@@ -40,9 +43,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
                 return Page();
             }
 
-            var id = Guid.NewGuid();
-            await Task.CompletedTask;
-            TempData.Put("profile", Command);
+            var id = await bus.SendAsync(new CreateProfile(Data.Name, Data.Address, Data.DateOfBirth));
             return RedirectToPage("./View", new { id });
         }
     }

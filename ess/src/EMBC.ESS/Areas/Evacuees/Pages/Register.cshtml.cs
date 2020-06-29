@@ -44,7 +44,7 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
                 return Page();
             }
 
-            var id = await bus.SendAsync((IRequest<System.Guid>)new CreateProfile(Profile.Name, Profile.Address, Profile.DateOfBirth));
+            var id = await bus.SendAsync(new CreateProfile(Profile.Name, Profile.Address, Profile.DateOfBirth));
             return RedirectToPage("./View", new { id });
         }
     }

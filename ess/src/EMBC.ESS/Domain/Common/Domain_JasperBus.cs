@@ -22,7 +22,7 @@ namespace EMBC.ESS.Domain.Common
             return await messageContext.Invoke<TResponse>(command);
         }
 
-        public async Task SendAsync<T>(T command) where T : ICommand
+        public async Task SendAsync(ICommand command)
         {
             await messageContext.Invoke(command);
         }

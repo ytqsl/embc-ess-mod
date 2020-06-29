@@ -21,7 +21,7 @@ namespace EMBC.ESS.Domain.Common
 
     public interface ICommandSender
     {
-        Task SendAsync<T>(T command) where T : ICommand;
+        Task SendAsync(ICommand command);
 
         Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> command);
     }
