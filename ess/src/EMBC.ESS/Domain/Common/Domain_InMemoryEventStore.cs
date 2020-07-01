@@ -15,14 +15,14 @@ namespace EMBC.ESS.Domain.Common
             this.publisher = publisher;
         }
 
-        private readonly ConcurrentDictionary<Guid, InMemoryEventStream> current = new ConcurrentDictionary<Guid, InMemoryEventStream>();
+        private readonly ConcurrentDictionary<string, InMemoryEventStream> current = new ConcurrentDictionary<string, InMemoryEventStream>();
 
         private struct InMemoryEventStream
         {
             public List<Event> Events { get; set; }
         }
 
-        public async Task SaveEventsAsync(Guid eventStreamId, string eventStreamType, IEnumerable<Event> events, long expectedVersion)
+        public async Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, long expectedVersion)
         {
             // try to get event descriptors list for given stream
             if (!current.TryGetValue(eventStreamId, out var stream))
@@ -60,7 +60,7 @@ namespace EMBC.ESS.Domain.Common
 
         // collect all processed events for given stream and return them as a list
         // used to build up an aggregate from its history (Domain.LoadsFromHistory)
-        public async Task<IEnumerable<Event>> GetEventsAsync(Guid eventStreamId)
+        public async Task<IEnumerable<Event>> GetEventsAsync(string eventStreamId)
         {
             await Task.CompletedTask;
             if (!current.TryGetValue(eventStreamId, out var stream))

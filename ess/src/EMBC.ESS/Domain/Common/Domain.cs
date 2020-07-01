@@ -39,16 +39,16 @@ namespace EMBC.ESS.Domain.Common
 
     public interface IEventStore
     {
-        Task SaveEventsAsync(Guid eventStreamId, string eventStreamType, IEnumerable<Event> events, long expectedVersion);
+        Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, long expectedVersion);
 
-        Task<IEnumerable<Event>> GetEventsAsync(Guid eventStreamId);
+        Task<IEnumerable<Event>> GetEventsAsync(string eventStreamId);
     }
 
 #pragma warning disable CA1032, S3925
 
     public class StreamNotFoundException : Exception
     {
-        public StreamNotFoundException(Guid streamId)
+        public StreamNotFoundException(string streamId)
             : base($"StreamId {streamId}")
         {
         }
@@ -56,7 +56,7 @@ namespace EMBC.ESS.Domain.Common
 
     public class ConcurrencyException : Exception
     {
-        public ConcurrencyException(Guid streamId, long expectedVersion, long actualVersion)
+        public ConcurrencyException(string streamId, long expectedVersion, long actualVersion)
             : base($"Stream {streamId} expected to be in version {expectedVersion} but was version {actualVersion}")
         {
         }
@@ -143,7 +143,7 @@ namespace EMBC.ESS.Domain.Common
 
         public async Task SaveAsync(TItem aggregate, long expectedVersion)
         {
-            await _storage.SaveEventsAsync(aggregate.Id, aggregate.GetType().FullName, aggregate.GetUncommittedChanges(), expectedVersion);
+            await _storage.SaveEventsAsync(GetStreamName(aggregate), aggregate.GetUncommittedChanges(), expectedVersion);
             aggregate.MarkChangesAsCommitted();
         }
 
@@ -155,9 +155,19 @@ namespace EMBC.ESS.Domain.Common
         public async Task<TItem> GetByIdAsync(Guid id)
         {
             var aggregate = await factory();
-            var e = await _storage.GetEventsAsync(id);
+            var e = await _storage.GetEventsAsync(GetStreamName(aggregate, id));
             aggregate.LoadsFromHistory(e);
             return aggregate;
+        }
+
+        private static string GetStreamName(TItem aggregate)
+        {
+            return GetStreamName(aggregate, aggregate.Id);
+        }
+
+        private static string GetStreamName(TItem aggregate, Guid id)
+        {
+            return $"{aggregate.GetType().FullName}_{id}";
         }
     }
 
