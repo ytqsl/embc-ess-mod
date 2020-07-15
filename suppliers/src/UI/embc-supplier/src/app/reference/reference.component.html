@@ -1,16 +1,17 @@
 <div class="container">
     <div class="row align-items-center">
-        <div class="col-sm-12">
+        <div class="col-md-12">
             <div class="row">
-                <div class="col-sm-1"><img src="/assets/images/logoBlueNew.png" style="width:80px"></div>
-                <div>
-                  <p class="submissionHeader">Evacuee Registration & Assistance (ERA)</p>
-                  <span style="font-size: 28px;">Supplier Invoice Submission</span>
+                <img class="img-fluid d-none d-md-block" src="/assets/images/essIcon.svg" width="114" height="147">
+                <img class="img-fluid d-md-none" src="/assets/images/essIcon.svg" width="114" height="147">
+                <div class="app-heading">
+                    <p class="submissionHeader">Evacuee Registration & Assistance (ERA)</p>
+                    <span style="font-size: 28px;">Supplier Invoice & Receipt Submission</span>
                 </div>
-              </div>
+            </div>
             <hr>
             <div class="row justify-content-center">
-                <i class="far fa-check-circle checkIcon"></i>
+                <img src="/assets/images/completeIcon.svg" width="88" height="88">
             </div>
             <div class="row justify-content-center">
                 <div class="text">Thank you for your submission</div>
@@ -28,6 +29,9 @@
                         <a href="mailto:ESSFinanceInquiries@gov.bc.ca">ESSFinanceInquiries@gov.bc.ca</a>
                     </p>
                 </div>
+            </div>
+            <div class="row justify-content-center" style="margin-top: 15px;">
+                <button type="submit" (click)="newSubmission()" class="btn primary-button">Start A New Submission</button>
             </div>
         </div>
     </div>
