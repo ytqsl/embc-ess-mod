@@ -12,7 +12,7 @@ namespace EMBC.ESS.Domain.Common
 
     public interface ICommand : IMessage { }
 
-    public interface IRequest<TResponse> : ICommand { }
+    public interface ICommand<TResponse> : ICommand { }
 
     public abstract class Event : IMessage
     {
@@ -23,7 +23,7 @@ namespace EMBC.ESS.Domain.Common
     {
         Task SendAsync(ICommand command);
 
-        Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> command);
+        Task<TResponse> SendAsync<TResponse>(ICommand<TResponse> command);
     }
 
     public interface IEventPublisher
@@ -143,12 +143,15 @@ namespace EMBC.ESS.Domain.Common
 
         public async Task SaveAsync(TItem aggregate, long expectedVersion)
         {
+            if (aggregate is null) { throw new ArgumentNullException(nameof(aggregate)); }
+
             await _storage.SaveEventsAsync(GetStreamName(aggregate), aggregate.GetUncommittedChanges(), expectedVersion);
             aggregate.MarkChangesAsCommitted();
         }
 
         public async Task SaveAsync(TItem aggregate)
         {
+            if (aggregate is null) { throw new ArgumentNullException(nameof(aggregate)); }
             await SaveAsync(aggregate, aggregate.Version);
         }
 
