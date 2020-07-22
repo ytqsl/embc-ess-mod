@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
-using EMBC.ESS.Domain.Profiles;
+using EMBC.ESS.Domain.Registrants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -22,9 +22,9 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
             public string Address { get; set; }
         }
 
-        private readonly IRepository<Profile> repository;
+        private readonly IRepository<Registration> repository;
 
-        public ViewModel(IRepository<Profile> repository)
+        public ViewModel(IRepository<Registration> repository)
         {
             this.repository = repository;
         }

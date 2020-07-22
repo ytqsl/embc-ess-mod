@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace EMBC.ESS.Domain.Profiles
+namespace EMBC.ESS.Domain.Registrants
 {
     public class ReadModelHandler
     {
@@ -13,7 +13,7 @@ namespace EMBC.ESS.Domain.Profiles
             this.repository = repository;
         }
 
-        public async Task Handle(ProfileCreated evt)
+        public async Task Handle(RegistrantCreated evt)
         {
             await repository.AddAsync(new ProfileReadModel
             {

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
-using EMBC.ESS.Domain.Profiles;
+using EMBC.ESS.Domain.Registrants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -44,7 +44,7 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
                 return Page();
             }
 
-            var id = await bus.SendAsync(new CreateProfile(Profile.Name, Profile.Address, Profile.DateOfBirth));
+            var id = await bus.SendAsync(new RegisterNew(Profile.Name, Profile.Address, Profile.DateOfBirth));
             return RedirectToPage("./View", new { id });
         }
     }

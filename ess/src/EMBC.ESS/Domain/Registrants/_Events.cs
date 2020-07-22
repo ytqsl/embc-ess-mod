@@ -1,11 +1,11 @@
 ﻿using System;
 using EMBC.ESS.Domain.Common;
 
-namespace EMBC.ESS.Domain.Profiles
+namespace EMBC.ESS.Domain.Registrants
 {
-    public class ProfileCreated : Event
+    public class RegistrantCreated : Event
     {
-        public ProfileCreated(Guid id, string name, string address, string identity, string dateOfBirth)
+        public RegistrantCreated(Guid id, string name, string address, string identity, string dateOfBirth)
         {
             Id = id;
             Name = name;

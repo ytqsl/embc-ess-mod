@@ -1,11 +1,11 @@
 ﻿using System;
 using EMBC.ESS.Domain.Common;
 
-namespace EMBC.ESS.Domain.Profiles
+namespace EMBC.ESS.Domain.Registrants
 {
-    public class CreateProfile : ICommand<Guid>
+    public class RegisterNew : ICommand<Guid>
     {
-        public CreateProfile(string name, string address, string dateOfBirth)
+        public RegisterNew(string name, string address, string dateOfBirth)
         {
             Name = name;
             Address = address;

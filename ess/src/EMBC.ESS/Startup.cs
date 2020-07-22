@@ -1,5 +1,5 @@
 ﻿using EMBC.ESS.Domain.Common;
-using EMBC.ESS.Domain.Profiles;
+using EMBC.ESS.Domain.Registrants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -18,7 +18,7 @@ namespace EMBC.ESS
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
             services.AddESEventStore();
             services.AddJasperMessageBus();
-            services.AddTransient<IRepository<Profile>, Repository<Profile>>();
+            services.AddTransient<IRepository<Registration>, Repository<Registration>>();
             services.AddTransient<IProfileReadModelRepository, ProfileReadModelRepository>();
         }
 
