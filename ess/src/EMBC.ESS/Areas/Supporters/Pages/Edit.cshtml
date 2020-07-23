@@ -1,0 +1,23 @@
+﻿@page "{id}"
+@model EditModel
+<h2>Register a new evacuee</h2>
+<form asp-antiforgery="true" method="post">
+    <input asp-for="Data.Id" hidden="hidden" />
+    <p asp-validation-summary="ModelOnly"></p>
+    <p>
+        <label asp-for="Data.Name"></label><br />
+        <input asp-for="Data.Name" />
+        <span asp-validation-for="Data.Name"></span>
+    </p>
+    <p>
+        <label asp-for="Data.Address"></label><br />
+        <input asp-for="Data.Address" />
+        <span asp-validation-for="Data.Address"></span>
+    </p>
+    <p>
+        <label asp-for="Data.DateOfBirth"></label><br />
+        <input asp-for="Data.DateOfBirth" />
+        <span asp-validation-for="Data.DateOfBirth"></span>
+    </p>
+    <input type="submit" value="Create" />
+</form>

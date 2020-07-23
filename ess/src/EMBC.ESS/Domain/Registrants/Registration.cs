@@ -61,14 +61,14 @@ namespace EMBC.ESS.Domain.Registrants
 
         public void UpdateName(string name)
         {
-            if (Name != name) return;
+            if (Name == name) return;
             var evt = new RegistrantNameChanged(Id, name);
             ApplyChange(evt);
         }
 
         public void UpdateAddress(string address)
         {
-            if (Address != address) return;
+            if (Address == address) return;
             var evt = new RegistrantAddressChanged(Id, address);
             ApplyChange(evt);
         }

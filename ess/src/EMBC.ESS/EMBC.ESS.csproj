@@ -14,6 +14,7 @@
   <ItemGroup>
     <Folder Include="Areas\Evacuees\Controllers\" />
     <Folder Include="Areas\Evacuees\Data\" />
+    <Folder Include="Areas\Evacuees\Models\" />
     <Folder Include="Areas\Supporters\Controllers\" />
     <Folder Include="Areas\Supporters\Data\" />
     <Folder Include="Areas\Supporters\Models\" />

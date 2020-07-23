@@ -38,7 +38,12 @@ namespace EMBC.ESS.Domain.Common
             Trace.Assert(!string.IsNullOrEmpty(eventStreamId));
             var events = await conn.ReadStreamEventsForwardAsync(eventStreamId, 0, 4096, true);
 
-            return events.Events.Select(e => e.Event.Data.DeserializeEvent(Type.GetType(e.Event.EventType)));
+            return events.Events.Select(e =>
+            {
+                var evt = e.Event.Data.DeserializeEvent(Type.GetType(e.Event.EventType));
+                evt.Version = e.OriginalEventNumber;
+                return evt;
+            });
         }
 
         public async Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, long expectedVersion)
@@ -46,7 +51,8 @@ namespace EMBC.ESS.Domain.Common
             Trace.Assert(!string.IsNullOrEmpty(eventStreamId));
             Trace.Assert(events != null);
             var serializedEvents = events.Select(e => new EventData(Guid.NewGuid(), e.GetType().FullName, true, e.SerializeEvent(), null)).ToArray();
-            await conn.AppendToStreamAsync(eventStreamId, expectedVersion - 1, serializedEvents);
+            if (expectedVersion == 0) expectedVersion--;
+            await conn.AppendToStreamAsync(eventStreamId, expectedVersion, serializedEvents);
         }
     }
 
@@ -86,14 +92,14 @@ namespace EMBC.ESS.Domain.Common
         public static IServiceCollection AddESEventStore(this IServiceCollection services)
         {
             var settings = ConnectionSettings
-                .Create()
-                .UseConsoleLogger()
-                //.EnableVerboseLogging()
-                .FailOnNoServerResponse()
-                .DisableServerCertificateValidation()
-                .LimitRetriesForOperationTo(1)
-                .DisableTls()
-                .Build();
+            .Create()
+            .UseConsoleLogger()
+            //.EnableVerboseLogging()
+            .FailOnNoServerResponse()
+            .DisableServerCertificateValidation()
+            .LimitRetriesForOperationTo(1)
+            .DisableTls()
+            .Build();
             var conn = EventStoreConnection.Create(settings, new Uri("tcp://admin:changeit@localhost:1113"));
             conn.ConnectAsync().GetAwaiter().GetResult();
 
