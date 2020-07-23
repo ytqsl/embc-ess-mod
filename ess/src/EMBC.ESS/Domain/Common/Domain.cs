@@ -12,7 +12,9 @@ namespace EMBC.ESS.Domain.Common
 
     public interface ICommand : IMessage { }
 
-    public interface ICommand<TResponse> : ICommand { }
+    public interface ICommand<out TResponse> : ICommand { }
+
+    public interface IQuery<out TResponse> : IMessage { }
 
     public abstract class Event : IMessage
     {
@@ -31,7 +33,12 @@ namespace EMBC.ESS.Domain.Common
         Task PublishAsync<T>(T evt) where T : Event;
     }
 
-    public interface IBus : ICommandSender, IEventPublisher { }
+    public interface IQuerySender
+    {
+        Task<TResponse> QueryAsync<TResponse>(IQuery<TResponse> command);
+    }
+
+    public interface IBus : ICommandSender, IEventPublisher, IQuerySender { }
 
     #endregion Messaging
 

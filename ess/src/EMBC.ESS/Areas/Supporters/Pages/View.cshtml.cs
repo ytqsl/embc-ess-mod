@@ -10,7 +10,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 {
     public class ViewModel : PageModel
     {
-        private readonly IRepository<Registration> repository;
+        private readonly IQuerySender bus;
 
         public class ProfileViewModel
         {
@@ -26,17 +26,17 @@ namespace EMBC.ESS.Areas.Supporters.Pages
             public string Address { get; set; }
         }
 
-        public ViewModel(IRepository<Registration> repository)
+        public ViewModel(IQuerySender bus)
         {
-            this.repository = repository;
+            this.bus = bus;
         }
 
         [ViewData]
         public ProfileViewModel Data { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string id)
+        public async Task<IActionResult> OnGetAsync(Guid id)
         {
-            var profile = await repository.GetByIdAsync(Guid.Parse(id));
+            var profile = await bus.QueryAsync(new ProfileByIdQuery(id));
             Data = new ProfileViewModel
             {
                 Id = profile.Id.ToString(),

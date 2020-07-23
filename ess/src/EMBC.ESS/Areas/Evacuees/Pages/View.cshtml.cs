@@ -10,7 +10,7 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
 {
     public class ViewModel : PageModel
     {
-        public class ProfilViewModel
+        public class ProfileViewModel
         {
             [Display(Name = "Full Name")]
             public string Name { get; set; }
@@ -22,20 +22,20 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
             public string Address { get; set; }
         }
 
-        private readonly IRepository<Registration> repository;
+        private readonly IQuerySender bus;
 
-        public ViewModel(IRepository<Registration> repository)
+        public ViewModel(IQuerySender bus)
         {
-            this.repository = repository;
+            this.bus = bus;
         }
 
         [ViewData]
-        public ProfilViewModel Profile { get; set; }
+        public ProfileViewModel Profile { get; set; }
 
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
-            var profile = await repository.GetByIdAsync(id);
-            Profile = new ProfilViewModel
+            var profile = await bus.QueryAsync(new ProfileByIdQuery(id));
+            Profile = new ProfileViewModel
             {
                 Address = profile.Address,
                 DateOfBirth = profile.DateOfBirth,

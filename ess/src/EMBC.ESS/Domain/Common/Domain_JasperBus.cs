@@ -18,6 +18,11 @@ namespace EMBC.ESS.Domain.Common
             await messageContext.Publish(evt);
         }
 
+        public async Task<TResponse> QueryAsync<TResponse>(IQuery<TResponse> command)
+        {
+            return await messageContext.Invoke<TResponse>(command);
+        }
+
         public async Task<TResponse> SendAsync<TResponse>(ICommand<TResponse> command)
         {
             return await messageContext.Invoke<TResponse>(command);
@@ -35,6 +40,7 @@ namespace EMBC.ESS.Domain.Common
         {
             services.AddSingleton<IEventPublisher, JasperServiceBus>();
             services.AddSingleton<ICommandSender, JasperServiceBus>();
+            services.AddSingleton<IQuerySender, JasperServiceBus>();
 
             return services;
         }
