@@ -16,6 +16,7 @@ namespace EMBC.ESS
         {
             services.AddRazorPages();
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
+            //services.AddEmbeddedESEventStore();
             services.AddESEventStore();
             services.AddJasperMessageBus();
             services.AddTransient<IRepository<Registration>, Repository<Registration>>();

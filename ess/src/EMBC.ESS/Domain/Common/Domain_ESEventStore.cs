@@ -59,33 +59,48 @@ namespace EMBC.ESS.Domain.Common
 
     public static class ESEvenStoreConfigEx
     {
-        public static IServiceCollection AddESEventStore(this IServiceCollection services)
+        public static IServiceCollection AddEmbeddedESEventStore(this IServiceCollection services)
         {
             services.AddSingleton<IEventStore, ESEventStore>();
 
             var node = EmbeddedVNodeBuilder
                 .AsSingleNode()
                 .OnDefaultEndpoints()
-                .RunInMemory()
+                //.RunInMemory()
+                .RunOnDisk("./EventStore")
                 .Build();
 
             node.Start();
 
             services.AddSingleton<IEventStoreConnection>(sp =>
             {
-                //var settings = ConnectionSettings
-                //    .Create()
-                //    .UseConsoleLogger()
-                //    .EnableVerboseLogging()
-                //    //.FailOnNoServerResponse()
-                //    .DisableServerCertificateValidation()
-                //    .LimitRetriesForOperationTo(1)
-                //    .Build();
-                //var conn = EventStoreConnection.Create(settings, new Uri("tcp://admin:changeit@localhost:1113"));
                 var conn = EmbeddedEventStoreConnection.Create(node);
                 conn.ConnectAsync().GetAwaiter().GetResult();
 
                 return conn;
+            });
+
+            return services;
+        }
+
+        public static IServiceCollection AddESEventStore(this IServiceCollection services)
+        {
+            var settings = ConnectionSettings
+                .Create()
+                .UseConsoleLogger()
+                //.EnableVerboseLogging()
+                .FailOnNoServerResponse()
+                .DisableServerCertificateValidation()
+                .LimitRetriesForOperationTo(1)
+                .DisableTls()
+                .Build();
+            var conn = EventStoreConnection.Create(settings, new Uri("tcp://admin:changeit@localhost:1113"));
+            conn.ConnectAsync().GetAwaiter().GetResult();
+
+            services.AddSingleton<IEventStore>(sp =>
+            {
+                var eventPublisher = sp.GetRequiredService<IEventPublisher>();
+                return new ESEventStore(conn, eventPublisher);
             });
 
             return services;

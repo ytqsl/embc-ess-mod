@@ -33,8 +33,8 @@ namespace EMBC.ESS.Domain.Common
     {
         public static IServiceCollection AddJasperMessageBus(this IServiceCollection services)
         {
-            services.AddTransient<IEventPublisher, JasperServiceBus>();
-            services.AddTransient<ICommandSender, JasperServiceBus>();
+            services.AddSingleton<IEventPublisher, JasperServiceBus>();
+            services.AddSingleton<ICommandSender, JasperServiceBus>();
 
             return services;
         }
