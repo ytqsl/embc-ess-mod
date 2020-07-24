@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
-using EventStore.ClientAPI.SystemData;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
@@ -16,34 +16,26 @@ namespace EMBC.ESS.Domain.Common
     {
         private readonly IEventStoreConnection conn;
 
-        public ESEventStore(IEventStoreConnection conn, IEventPublisher eventPublisher)
+        public ESEventStore(IEventStoreConnection conn)
         {
-            if (eventPublisher is null) { throw new ArgumentNullException(nameof(eventPublisher)); }
             this.conn = conn ?? throw new ArgumentNullException(nameof(conn));
-
-            RegisterSubscribers(conn, eventPublisher);
         }
 
-        private static void RegisterSubscribers(IEventStoreConnection conn, IEventPublisher eventPublisher)
-        {
-            conn.FilteredSubscribeToAllAsync(true, Filter.ExcludeSystemEvents, async (sub, evt) =>
-            {
-                var evtDeserialized = evt.Event.Data.DeserializeEvent(Type.GetType(evt.Event.EventType));
-                await eventPublisher.PublishAsync(evtDeserialized);
-            }, userCredentials: new UserCredentials("admin", "changeit")).GetAwaiter().GetResult();
-        }
-
-        public async Task<IEnumerable<Event>> GetEventsAsync(string eventStreamId)
+        public async IAsyncEnumerable<Event> GetEventsAsync(string eventStreamId)
         {
             Trace.Assert(!string.IsNullOrEmpty(eventStreamId));
-            var events = await conn.ReadStreamEventsForwardAsync(eventStreamId, 0, 4096, true);
-
-            return events.Events.Select(e =>
+            long lastEventNumber = 0;
+            int chunkSize = 4096;
+            StreamEventsSlice eventsSlice;
+            do
             {
-                var evt = e.Event.Data.DeserializeEvent(Type.GetType(e.Event.EventType));
-                evt.Version = e.OriginalEventNumber;
-                return evt;
-            });
+                eventsSlice = await conn.ReadStreamEventsForwardAsync(eventStreamId, lastEventNumber, chunkSize, true);
+                lastEventNumber = eventsSlice.NextEventNumber;
+                foreach (var e in eventsSlice.Events)
+                {
+                    yield return e.ToDomainEvent();
+                }
+            } while (!eventsSlice.IsEndOfStream);
         }
 
         public async Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, long expectedVersion)
@@ -56,19 +48,24 @@ namespace EMBC.ESS.Domain.Common
         }
     }
 
-    public static class EventStoreSerializationEx
+    public static class EventStoreEx
     {
         public static Event DeserializeEvent(this byte[] data, Type eventType) => (Event)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data), eventType);
 
         public static byte[] SerializeEvent(this Event evt) => Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(evt));
+
+        public static Event ToDomainEvent(this ResolvedEvent e)
+        {
+            var evt = e.Event.Data.DeserializeEvent(Type.GetType(e.Event.EventType));
+            evt.Version = e.Event.EventNumber;
+            return evt;
+        }
     }
 
     public static class ESEvenStoreConfigEx
     {
         public static IServiceCollection AddEmbeddedESEventStore(this IServiceCollection services)
         {
-            services.AddSingleton<IEventStore, ESEventStore>();
-
             var node = EmbeddedVNodeBuilder
                 .AsSingleNode()
                 .OnDefaultEndpoints()
@@ -78,13 +75,11 @@ namespace EMBC.ESS.Domain.Common
 
             node.Start();
 
-            services.AddSingleton<IEventStoreConnection>(sp =>
-            {
-                var conn = EmbeddedEventStoreConnection.Create(node);
-                conn.ConnectAsync().GetAwaiter().GetResult();
+            var conn = EmbeddedEventStoreConnection.Create(node);
+            conn.ConnectAsync().GetAwaiter().GetResult();
 
-                return conn;
-            });
+            services.AddSingleton(conn);
+            services.AddSingleton<IEventStore, ESEventStore>();
 
             return services;
         }
@@ -103,13 +98,22 @@ namespace EMBC.ESS.Domain.Common
             var conn = EventStoreConnection.Create(settings, new Uri("tcp://admin:changeit@localhost:1113"));
             conn.ConnectAsync().GetAwaiter().GetResult();
 
-            services.AddSingleton<IEventStore>(sp =>
-            {
-                var eventPublisher = sp.GetRequiredService<IEventPublisher>();
-                return new ESEventStore(conn, eventPublisher);
-            });
-
+            services.AddSingleton(conn);
+            services.AddSingleton<IEventStore, ESEventStore>();
             return services;
+        }
+
+        public static IApplicationBuilder InitializeESEventStore(this IApplicationBuilder builder)
+        {
+            var eventPublisher = builder.ApplicationServices.GetRequiredService<IEventPublisher>();
+            var conn = builder.ApplicationServices.GetRequiredService<IEventStoreConnection>();
+
+            conn.FilteredSubscribeToAllFrom(null, Filter.ExcludeSystemEvents, CatchUpSubscriptionFilteredSettings.Default,
+               async (sub, evt) =>
+               {
+                   await eventPublisher.PublishAsync(evt.ToDomainEvent());
+               });
+            return builder;
         }
     }
 }

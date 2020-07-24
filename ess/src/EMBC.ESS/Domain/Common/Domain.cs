@@ -48,7 +48,7 @@ namespace EMBC.ESS.Domain.Common
     {
         Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, long expectedVersion);
 
-        Task<IEnumerable<Event>> GetEventsAsync(string eventStreamId);
+        IAsyncEnumerable<Event> GetEventsAsync(string eventStreamId);
     }
 
 #pragma warning disable CA1032, S3925
@@ -104,9 +104,9 @@ namespace EMBC.ESS.Domain.Common
             changes.Clear();
         }
 
-        internal void LoadsFromHistory(IEnumerable<Event> history)
+        internal async Task LoadsFromHistory(IAsyncEnumerable<Event> history)
         {
-            foreach (var e in history)
+            await foreach (var e in history)
             {
                 ApplyChange(e, false);
                 Version = e.Version;
@@ -165,8 +165,8 @@ namespace EMBC.ESS.Domain.Common
         public async Task<TItem> GetByIdAsync(Guid id)
         {
             var aggregate = await factory();
-            var e = await _storage.GetEventsAsync(GetStreamName(aggregate, id));
-            aggregate.LoadsFromHistory(e);
+            var events = _storage.GetEventsAsync(GetStreamName(aggregate, id));
+            await aggregate.LoadsFromHistory(events);
             return aggregate;
         }
 
