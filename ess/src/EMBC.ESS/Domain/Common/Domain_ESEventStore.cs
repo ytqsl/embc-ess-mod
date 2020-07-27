@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
+using EventStore.ClientAPI.Projections;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -99,21 +102,68 @@ namespace EMBC.ESS.Domain.Common
             conn.ConnectAsync().GetAwaiter().GetResult();
 
             services.AddSingleton(conn);
+            services.AddSingleton((sp) =>
+            {
+                var logger = sp.GetRequiredService<ILogger>();
+                return new ProjectionsManager(logger, new IPEndPoint(IPAddress.Loopback, 2113), TimeSpan.FromSeconds(5));
+            });
             services.AddSingleton<IEventStore, ESEventStore>();
+            services.AddTransient<ESEventReadModelReplayer>();
             return services;
         }
 
-        public static IApplicationBuilder InitializeESEventStore(this IApplicationBuilder builder)
+        public static IApplicationBuilder InitializeESEventStore(this IApplicationBuilder builder, params Type[] handlersToReplay)
         {
-            var eventPublisher = builder.ApplicationServices.GetRequiredService<IEventPublisher>();
-            var conn = builder.ApplicationServices.GetRequiredService<IEventStoreConnection>();
+            var sp = builder.ApplicationServices;
+            var eventPublisher = sp.GetRequiredService<IEventPublisher>();
+            var conn = sp.GetRequiredService<IEventStoreConnection>();
 
-            conn.FilteredSubscribeToAllFrom(null, Filter.ExcludeSystemEvents, CatchUpSubscriptionFilteredSettings.Default,
-               async (sub, evt) =>
-               {
-                   await eventPublisher.PublishAsync(evt.ToDomainEvent());
-               });
+            var replayer = sp.GetRequiredService<ESEventReadModelReplayer>();
+            foreach (var handlerType in handlersToReplay)
+            {
+                replayer.ReplayInto(handlerType);
+            }
+            conn.FilteredSubscribeToAllAsync(true, Filter.ExcludeSystemEvents, async (sub, e) =>
+            {
+                await eventPublisher.PublishAsync(e.ToDomainEvent());
+            });
             return builder;
+        }
+    }
+
+    public class ESEventReadModelReplayer
+    {
+        private readonly IServiceProvider serviceProvider;
+
+        public ESEventReadModelReplayer(IServiceProvider serviceProvider)
+        {
+            this.serviceProvider = serviceProvider;
+        }
+
+        public void ReplayInto(Type handlerType)
+        {
+            var conn = serviceProvider.GetRequiredService<IEventStoreConnection>();
+            var handler = serviceProvider.GetRequiredService(handlerType);
+            var handlers = handler.GetType()
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(mi => mi.GetParameters().Length == 1)
+                     .Select(mi => new { mi = mi, et = mi.GetParameters()[0].ParameterType })
+                     .Where(m => typeof(Event).IsAssignableFrom(m.et))
+                    .ToDictionary(m => m.et);
+            var lastEventNumber = Position.Start;
+            int chunkSize = 4096;
+            AllEventsSlice eventsSlice;
+            do
+            {
+                eventsSlice = conn.FilteredReadAllEventsForwardAsync(Position.Start, chunkSize, true, Filter.ExcludeSystemEvents).GetAwaiter().GetResult();
+                lastEventNumber = eventsSlice.NextPosition;
+                foreach (var evt in eventsSlice.Events)
+                {
+                    var e = evt.ToDomainEvent();
+                    if (!handlers.ContainsKey(e.GetType())) continue;
+                    handlers[e.GetType()].mi.Invoke(handler, new[] { e });
+                }
+            } while (!eventsSlice.IsEndOfStream);
         }
     }
 }
