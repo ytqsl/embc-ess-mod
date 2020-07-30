@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  event-store:
+    image: eventstore/eventstore
+    ports:
+    - 2113:2113
+    volumes:
+    - ./eventstore:/eventstore
+    environment:
+    - "EVENTSTORE_RUN_PROJECTIONS=All"
+    - "EVENTSTORE_DB=/eventstore/data"
+    - "EVENTSTORE_CERTIFICATE_FILE=/eventstore/certs/eventstore.p12"
+    - "EVENTSTORE_TRUSTED_ROOT_CERTIFICATES_PATH=/eventstore/certs/"
+    - "EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true"
+    env_file:
+      - .env
