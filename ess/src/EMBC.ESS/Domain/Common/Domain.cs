@@ -18,7 +18,7 @@ namespace EMBC.ESS.Domain.Common
 
     public abstract class Event : IMessage
     {
-        public long Version;
+        public ulong Version;
     }
 
     public interface ICommandSender
@@ -46,7 +46,7 @@ namespace EMBC.ESS.Domain.Common
 
     public interface IEventStore
     {
-        Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, long expectedVersion);
+        Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, ulong expectedVersion);
 
         IAsyncEnumerable<Event> GetEventsAsync(string eventStreamId);
     }
@@ -77,7 +77,7 @@ namespace EMBC.ESS.Domain.Common
 
     public interface IRepository<TItem> where TItem : AggregateRoot
     {
-        Task SaveAsync(TItem aggregate, long expectedVersion);
+        Task SaveAsync(TItem aggregate, ulong expectedVersion);
 
         Task SaveAsync(TItem aggregate);
 
@@ -88,7 +88,7 @@ namespace EMBC.ESS.Domain.Common
     {
         private readonly List<Event> changes = new List<Event>();
         public Guid Id { get; protected set; }
-        public long Version { get; private set; }
+        public ulong Version { get; private set; }
 
         internal IEnumerable<Event> GetUncommittedChanges()
         {
@@ -148,7 +148,7 @@ namespace EMBC.ESS.Domain.Common
             this.factory = factory;
         }
 
-        public async Task SaveAsync(TItem aggregate, long expectedVersion)
+        public async Task SaveAsync(TItem aggregate, ulong expectedVersion)
         {
             if (aggregate is null) { throw new ArgumentNullException(nameof(aggregate)); }
 
