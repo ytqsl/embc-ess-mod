@@ -30,7 +30,7 @@ namespace EMBC.ESS.Domain.Common
 
         public async Task SendAsync(ICommand command)
         {
-            await messageContext.Send(command);
+            await messageContext.Invoke(command);
         }
     }
 

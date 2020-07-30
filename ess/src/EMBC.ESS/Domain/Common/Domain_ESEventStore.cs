@@ -28,7 +28,7 @@ namespace EMBC.ESS.Domain.Common
         public IAsyncEnumerable<Event> GetEventsAsync(string eventStreamId)
         {
             Trace.Assert(!string.IsNullOrEmpty(eventStreamId));
-            return conn.ReadAllAsync(Direction.Forwards, Position.Start).Select(e => e.ToDomainEvent());
+            return conn.ReadStreamAsync(Direction.Forwards, eventStreamId, StreamPosition.Start).Select(e => e.ToDomainEvent());
         }
 
         public async Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, ulong expectedVersion)
