@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using EventStore.Client;
 using Microsoft.AspNetCore.Builder;
@@ -49,7 +48,7 @@ namespace EMBC.ESS.Domain.Common
 
         public static Event ToDomainEvent(this ResolvedEvent e)
         {
-            var evt = e.Event.Data.DeserializeEvent(Type.GetType(e.Event.EventType));
+            var evt = e.Event.Data.DeserializeEvent(Type.GetType(e.Event.EventType, true));
             evt.Version = e.Event.EventNumber.ToUInt64();
             return evt;
         }
@@ -66,7 +65,7 @@ namespace EMBC.ESS.Domain.Common
         {
             var settings = new EventStoreClientSettings
             {
-                OperationOptions = new EventStoreClientOperationOptions { ThrowOnAppendFailure = true, TimeoutAfter = TimeSpan.FromSeconds(5) },
+                OperationOptions = new EventStoreClientOperationOptions { ThrowOnAppendFailure = true },
                 CreateHttpMessageHandler = () => new SocketsHttpHandler
                 {
                     SslOptions = { RemoteCertificateValidationCallback = (sender, certificate, chain, errors) => true }
@@ -90,9 +89,9 @@ namespace EMBC.ESS.Domain.Common
         {
             var sp = builder.ApplicationServices;
             var replayer = sp.GetRequiredService<EventReplayer>();
-            replayer.ReplayInto(handlersToReplay).Wait();
+            replayer.ReplayInto(handlersToReplay).GetAwaiter().GetResult();
             var subscriptionManager = sp.GetRequiredService<SubscriptionManager>();
-            subscriptionManager.SubscribePublisher().Wait();
+            subscriptionManager.SubscribePublisher(Position.End).Wait();
             return builder;
         }
     }
@@ -109,15 +108,15 @@ namespace EMBC.ESS.Domain.Common
         public async Task ReplayInto(params Type[] handlersToReplay)
         {
             var conn = serviceProvider.GetRequiredService<EventStoreClient>();
-            await foreach (var handler in handlersToReplay.ToAsyncEnumerable())
+            await foreach (var handlerType in handlersToReplay.ToAsyncEnumerable())
             {
+                var handler = serviceProvider.GetRequiredService(handlerType);
                 await ReplayInto(conn, handler);
             }
         }
 
-        private async Task ReplayInto(EventStoreClient conn, Type handlerType)
+        private async Task ReplayInto(EventStoreClient conn, object handler)
         {
-            var handler = serviceProvider.GetRequiredService(handlerType);
             var handlers = handler.GetType()
                     .GetMethods(BindingFlags.Public | BindingFlags.Instance)
                     .Where(mi => mi.GetParameters().Length == 1)
@@ -128,7 +127,7 @@ namespace EMBC.ESS.Domain.Common
             await conn.ReadAllAsync(Direction.Forwards, Position.Start)
                 .ForEachAsync(evt =>
                 {
-                    if (evt.Event.EventType.StartsWith("$")) return;
+                    if (evt.Event.EventType.StartsWith("$") || evt.OriginalStreamId.StartsWith("$")) return;
                     var e = evt.ToDomainEvent();
                     if (!handlers.ContainsKey(e.GetType())) return;
                     handlers[e.GetType()].mi.Invoke(handler, new[] { e });
@@ -138,39 +137,44 @@ namespace EMBC.ESS.Domain.Common
 
     public class SubscriptionManager
     {
-        private readonly IServiceProvider serviceProvider;
+        private ILogger<SubscriptionManager> logger;
+        private readonly IEventPublisher publisher;
+        private readonly EventStoreClient conn;
+        private StreamSubscription sub;
 
         public SubscriptionManager(IServiceProvider serviceProvider)
         {
-            this.serviceProvider = serviceProvider;
+            logger = serviceProvider.GetRequiredService<ILogger<SubscriptionManager>>();
+            publisher = serviceProvider.GetRequiredService<IEventPublisher>();
+            conn = serviceProvider.GetRequiredService<EventStoreClient>();
         }
 
-        public async Task SubscribePublisher()
+        public async Task SubscribePublisher(Position lastKnown)
         {
-            var publisher = serviceProvider.GetRequiredService<IEventPublisher>();
-            var conn = serviceProvider.GetRequiredService<EventStoreClient>();
-            var logger = serviceProvider.GetRequiredService<ILogger<SubscriptionManager>>();
-            logger.LogDebug("Subscribing event publisher to event store");
+            logger.LogDebug("Subscribing event publisher to EventStore");
+            var lastKnownPosition = lastKnown;
             try
             {
-                var sub = await conn.SubscribeToAllAsync(Position.End,
+                sub = await conn.SubscribeToAllAsync(lastKnown,
                     eventAppeared: async (sub, e, _) =>
                     {
                         await publisher.PublishAsync(e.ToDomainEvent());
+                        lastKnownPosition = e.Event.Position;
                     },
                     filterOptions: new SubscriptionFilterOptions(EventTypeFilter.ExcludeSystemEvents()),
                     subscriptionDropped: (sub, reason, e) =>
                     {
-                        logger.LogError("Event store dropped subscription {0} of event publisher: {1}. Resubscribing...", sub.SubscriptionId, reason);
-                        SubscribePublisher().Wait();
+                        logger.LogError("EventStore dropped subscription {0} of event publisher: {1}. Resubscribing from position {2}...", sub.SubscriptionId, reason, lastKnownPosition);
+                        sub.Dispose();
+                        SubscribePublisher(lastKnownPosition).Wait();
                     });
                 logger.LogInformation("Subscribed event publisher to event store, subscription id {0}", sub.SubscriptionId);
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Failed to subscribe event publisher to evet store: {0}", e.Message);
-                Thread.Sleep(TimeSpan.FromSeconds(5).Milliseconds);
-                await SubscribePublisher();
+                logger.LogError(e, "Failed to subscribe event publisher to EventStore: {0}", e.Message);
+                if (sub != null) sub.Dispose();
+                await Task.Delay(TimeSpan.FromSeconds(5).Milliseconds).ContinueWith(_ => SubscribePublisher(lastKnownPosition));
             }
         }
     }
