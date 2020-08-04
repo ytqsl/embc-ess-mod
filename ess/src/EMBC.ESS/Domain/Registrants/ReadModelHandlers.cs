@@ -5,16 +5,16 @@ namespace EMBC.ESS.Domain.Registrants
 {
     public class ReadModelEventHandler
     {
-        private readonly IProfileReadModelRepository repository;
+        private readonly IRegistrantProfileReadModelRepository repository;
 
-        public ReadModelEventHandler(IProfileReadModelRepository repository)
+        public ReadModelEventHandler(IRegistrantProfileReadModelRepository repository)
         {
             this.repository = repository;
         }
 
         public async Task Handle(RegistrantCreated evt)
         {
-            await repository.AddAsync(new RegistrantProfileView
+            await repository.AddAsync(new RegistrantProfile
             {
                 Id = evt.Id,
                 Name = evt.Name,
@@ -61,19 +61,19 @@ namespace EMBC.ESS.Domain.Registrants
 
     public class ReadModelQueryHandler
     {
-        private readonly IProfileReadModelRepository repository;
+        private readonly IRegistrantProfileReadModelRepository repository;
 
-        public ReadModelQueryHandler(IProfileReadModelRepository repository)
+        public ReadModelQueryHandler(IRegistrantProfileReadModelRepository repository)
         {
             this.repository = repository;
         }
 
-        public async Task<IEnumerable<RegistrantProfileView>> Handle(ProfilesQuery query)
+        public async Task<IEnumerable<RegistrantProfile>> Handle(ProfilesQuery query)
         {
             return await repository.GetAllAsync(query.FirstName, query.LastName, query.DateOfBirth);
         }
 
-        public async Task<RegistrantProfileView> Handle(ProfileByIdQuery query)
+        public async Task<RegistrantProfile> Handle(ProfileByIdQuery query)
         {
             return await repository.GetByIdAsync(query.Id);
         }

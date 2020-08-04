@@ -4,7 +4,7 @@ using EMBC.ESS.Domain.Common;
 
 namespace EMBC.ESS.Domain.Registrants
 {
-    public class ProfileByIdQuery : IQuery<RegistrantProfileView>
+    public class ProfileByIdQuery : IQuery<RegistrantProfile>
     {
         public ProfileByIdQuery(Guid id)
         {
@@ -14,7 +14,7 @@ namespace EMBC.ESS.Domain.Registrants
         public Guid Id { get; }
     }
 
-    public class ProfilesQuery : IQuery<IEnumerable<RegistrantProfileView>>
+    public class ProfilesQuery : IQuery<IEnumerable<RegistrantProfile>>
     {
         public ProfilesQuery(string firstName, string lastName, string dateOfBirth)
         {

@@ -5,18 +5,18 @@ using System.Threading.Tasks;
 
 namespace EMBC.ESS.Domain.Registrants
 {
-    public interface IProfileReadModelRepository
+    public interface IRegistrantProfileReadModelRepository
     {
-        Task AddAsync(RegistrantProfileView profile);
+        Task AddAsync(RegistrantProfile profile);
 
-        Task Update(RegistrantProfileView profile);
+        Task Update(RegistrantProfile profile);
 
-        Task<IEnumerable<RegistrantProfileView>> GetAllAsync(string firstName = null, string lastName = null, string dateOfBirth = null);
+        Task<IEnumerable<RegistrantProfile>> GetAllAsync(string firstName = null, string lastName = null, string dateOfBirth = null);
 
-        Task<RegistrantProfileView> GetByIdAsync(Guid id);
+        Task<RegistrantProfile> GetByIdAsync(Guid id);
     }
 
-    public class RegistrantProfileView
+    public class RegistrantProfile
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
@@ -24,23 +24,23 @@ namespace EMBC.ESS.Domain.Registrants
         public string DateOfBirth { get; set; }
     }
 
-    public class ProfileReadModelRepository : IProfileReadModelRepository
+    public class RegistrantProfileReadModelRepository : IRegistrantProfileReadModelRepository
     {
-        private static readonly List<RegistrantProfileView> profiles = new List<RegistrantProfileView>();
+        private static readonly List<RegistrantProfile> profiles = new List<RegistrantProfile>();
 
-        public async Task AddAsync(RegistrantProfileView profile)
+        public async Task AddAsync(RegistrantProfile profile)
         {
             await Task.CompletedTask;
             profiles.Add(profile);
         }
 
-        public async Task Update(RegistrantProfileView profile)
+        public async Task Update(RegistrantProfile profile)
         {
             await Task.CompletedTask;
             //Update is done in memory by the handler, in the future there would be a call to persist the changes
         }
 
-        public async Task<IEnumerable<RegistrantProfileView>> GetAllAsync(string firstName = null, string lastName = null, string dateOfBirth = null)
+        public async Task<IEnumerable<RegistrantProfile>> GetAllAsync(string firstName = null, string lastName = null, string dateOfBirth = null)
         {
             await Task.CompletedTask;
             return profiles.Where(p => (string.IsNullOrWhiteSpace(firstName) || p.Name.StartsWith(firstName, StringComparison.OrdinalIgnoreCase)) &&
@@ -48,7 +48,7 @@ namespace EMBC.ESS.Domain.Registrants
                 (string.IsNullOrWhiteSpace(dateOfBirth) || p.DateOfBirth.Equals(dateOfBirth, StringComparison.OrdinalIgnoreCase)));
         }
 
-        public async Task<RegistrantProfileView> GetByIdAsync(Guid guid)
+        public async Task<RegistrantProfile> GetByIdAsync(Guid guid)
         {
             await Task.CompletedTask;
             var profile = profiles.SingleOrDefault(p => p.Id == guid);

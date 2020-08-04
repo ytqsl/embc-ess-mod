@@ -20,7 +20,7 @@ namespace EMBC.ESS
             services.AddESEventStore();
             services.AddJasperMessageBus();
             services.AddTransient<IRepository<Registration>, Repository<Registration>>();
-            services.AddTransient<IProfileReadModelRepository, ProfileReadModelRepository>();
+            services.AddTransient<IRegistrantProfileReadModelRepository, RegistrantProfileReadModelRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

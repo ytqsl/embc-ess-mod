@@ -177,7 +177,7 @@ namespace EMBC.ESS.Domain.Common
 
         private static string GetStreamName(TItem aggregate, Guid id)
         {
-            return $"{aggregate.GetType().FullName}_{id}";
+            return $"{aggregate.GetType().FullName}-{id}";
         }
     }
 

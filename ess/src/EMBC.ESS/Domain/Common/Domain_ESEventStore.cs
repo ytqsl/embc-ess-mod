@@ -40,7 +40,7 @@ namespace EMBC.ESS.Domain.Common
         }
     }
 
-    public static class EventStoreEx
+    public static class EventStoreSerializationEx
     {
         private static Event DeserializeEvent(this ReadOnlyMemory<byte> data, Type eventType) => (Event)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data.Span.ToArray()), eventType);
 
@@ -59,7 +59,7 @@ namespace EMBC.ESS.Domain.Common
         }
     }
 
-    public static class ESEvenStoreConfigEx
+    public static class ESEvenStoreConfigigurationEx
     {
         public static IServiceCollection AddESEventStore(this IServiceCollection services)
         {
@@ -80,7 +80,7 @@ namespace EMBC.ESS.Domain.Common
             var conn = new EventStoreClient(settings);
             services.AddSingleton(conn);
             services.AddSingleton<IEventStore, ESEventStore>();
-            services.AddSingleton<EventReplayer>();
+            services.AddSingleton<EventsReplayer>();
             services.AddSingleton<SubscriptionManager>();
             return services;
         }
@@ -88,7 +88,7 @@ namespace EMBC.ESS.Domain.Common
         public static IApplicationBuilder InitializeESEventStore(this IApplicationBuilder builder, params Type[] handlersToReplay)
         {
             var sp = builder.ApplicationServices;
-            var replayer = sp.GetRequiredService<EventReplayer>();
+            var replayer = sp.GetRequiredService<EventsReplayer>();
             replayer.ReplayInto(handlersToReplay).GetAwaiter().GetResult();
             var subscriptionManager = sp.GetRequiredService<SubscriptionManager>();
             subscriptionManager.SubscribePublisher(Position.End).Wait();
@@ -96,11 +96,11 @@ namespace EMBC.ESS.Domain.Common
         }
     }
 
-    public class EventReplayer
+    public class EventsReplayer
     {
         private readonly IServiceProvider serviceProvider;
 
-        public EventReplayer(IServiceProvider serviceProvider)
+        public EventsReplayer(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
         }
@@ -149,13 +149,12 @@ namespace EMBC.ESS.Domain.Common
             conn = serviceProvider.GetRequiredService<EventStoreClient>();
         }
 
-        public async Task SubscribePublisher(Position lastKnown)
+        public async Task SubscribePublisher(Position lastKnownPosition)
         {
             logger.LogDebug("Subscribing event publisher to EventStore");
-            var lastKnownPosition = lastKnown;
             try
             {
-                sub = await conn.SubscribeToAllAsync(lastKnown,
+                sub = await conn.SubscribeToAllAsync(lastKnownPosition,
                     eventAppeared: async (sub, e, _) =>
                     {
                         await publisher.PublishAsync(e.ToDomainEvent());
