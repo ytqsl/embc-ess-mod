@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EMBC.ESS.Domain.Common;
 
 namespace EMBC.ESS.Domain.Registrants
 {
@@ -53,6 +54,32 @@ namespace EMBC.ESS.Domain.Registrants
             await Task.CompletedTask;
             var profile = profiles.SingleOrDefault(p => p.Id == guid);
             return profile;
+        }
+    }
+
+    public class RegistrantProfileReadModelBuilder
+    {
+        private readonly IRegistrantProfileReadModelRepository repository;
+        private readonly IReadModelRepository<Registration> esRepository;
+
+        public RegistrantProfileReadModelBuilder(IRegistrantProfileReadModelRepository repository, IReadModelRepository<Registration> esRepository)
+        {
+            this.repository = repository;
+            this.esRepository = esRepository;
+        }
+
+        public async Task BuildAsync()
+        {
+            await foreach (var r in esRepository.Get())
+            {
+                await repository.AddAsync(new RegistrantProfile
+                {
+                    Id = r.Id,
+                    Address = r.Address,
+                    DateOfBirth = r.Idenfifiers.FirstOrDefault(i => i.Key == "date_of_birth").Value,
+                    Name = r.Name
+                });
+            }
         }
     }
 }

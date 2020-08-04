@@ -46,9 +46,9 @@ namespace EMBC.ESS.Domain.Common
 
     public interface IEventStore
     {
-        Task SaveEventsAsync(string eventStreamId, IEnumerable<Event> events, ulong expectedVersion);
+        Task SaveEventsAsync(string streamName, IEnumerable<Event> events, ulong expectedVersion);
 
-        IAsyncEnumerable<Event> GetEventsAsync(string eventStreamId);
+        IAsyncEnumerable<Event> GetEventsAsync(string streamName);
     }
 
 #pragma warning disable CA1032, S3925
@@ -82,6 +82,11 @@ namespace EMBC.ESS.Domain.Common
         Task SaveAsync(TItem aggregate);
 
         Task<TItem> GetByIdAsync(Guid id);
+    }
+
+    public interface IReadModelRepository<TItem> where TItem : AggregateRoot
+    {
+        IAsyncEnumerable<TItem> Get(Func<TItem, bool> predicate = null);
     }
 
     public abstract class AggregateRoot
@@ -152,7 +157,7 @@ namespace EMBC.ESS.Domain.Common
         {
             if (aggregate is null) { throw new ArgumentNullException(nameof(aggregate)); }
 
-            await _storage.SaveEventsAsync(GetStreamName(aggregate), aggregate.GetUncommittedChanges(), expectedVersion);
+            await _storage.SaveEventsAsync(GetStreamName(aggregate.Id), aggregate.GetUncommittedChanges(), expectedVersion);
             aggregate.MarkChangesAsCommitted();
         }
 
@@ -165,20 +170,12 @@ namespace EMBC.ESS.Domain.Common
         public async Task<TItem> GetByIdAsync(Guid id)
         {
             var aggregate = await factory();
-            var events = _storage.GetEventsAsync(GetStreamName(aggregate, id));
+            var events = _storage.GetEventsAsync(GetStreamName(id));
             await aggregate.LoadsFromHistory(events);
             return aggregate;
         }
 
-        private static string GetStreamName(TItem aggregate)
-        {
-            return GetStreamName(aggregate, aggregate.Id);
-        }
-
-        private static string GetStreamName(TItem aggregate, Guid id)
-        {
-            return $"{aggregate.GetType().FullName}-{id}";
-        }
+        private static string GetStreamName(Guid id) => $"{typeof(TItem).FullName}-{id}";
     }
 
     public abstract class DomainException : ApplicationException

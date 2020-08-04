@@ -42,20 +42,20 @@ namespace EMBC.ESS.Domain.Common
 
     public static class EventStoreSerializationEx
     {
-        private static Event DeserializeEvent(this ReadOnlyMemory<byte> data, Type eventType) => (Event)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data.Span.ToArray()), eventType);
+        public static T Deserialize<T>(this ReadOnlyMemory<byte> data, Type type) => (T)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data.Span.ToArray()), type);
 
-        private static ReadOnlyMemory<byte> SerializeEvent(this Event evt) => new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(evt)));
+        public static ReadOnlyMemory<byte> Serialize<T>(this T obj) => new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj)));
 
         public static Event ToDomainEvent(this ResolvedEvent e)
         {
-            var evt = e.Event.Data.DeserializeEvent(Type.GetType(e.Event.EventType, true));
+            var evt = e.Event.Data.Deserialize<Event>(Type.GetType(e.Event.EventType, true));
             evt.Version = e.Event.EventNumber.ToUInt64();
             return evt;
         }
 
         public static EventData FromDomainEvent(this Event evt)
         {
-            return new EventData(Uuid.NewUuid(), evt.GetType().FullName, evt.SerializeEvent());
+            return new EventData(Uuid.NewUuid(), evt.GetType().FullName, evt.Serialize());
         }
     }
 
@@ -85,11 +85,20 @@ namespace EMBC.ESS.Domain.Common
             return services;
         }
 
-        public static IApplicationBuilder InitializeESEventStore(this IApplicationBuilder builder, params Type[] handlersToReplay)
+        public static IApplicationBuilder InitializeESEventStore(this IApplicationBuilder builder, Type[] handlersToReplay = null, Type[] readModelBuilders = null)
         {
             var sp = builder.ApplicationServices;
             var replayer = sp.GetRequiredService<EventsReplayer>();
-            replayer.ReplayInto(handlersToReplay).GetAwaiter().GetResult();
+            if (handlersToReplay != null) replayer.ReplayInto(handlersToReplay).GetAwaiter().GetResult();
+            if (readModelBuilders != null)
+            {
+                foreach (var readModel in readModelBuilders)
+                {
+                    var instance = builder.ApplicationServices.GetRequiredService(readModel);
+                    var mi = readModel.GetMethod("BuildAsync");
+                    mi.Invoke(instance, new object[0]);
+                }
+            }
             var subscriptionManager = sp.GetRequiredService<SubscriptionManager>();
             subscriptionManager.SubscribePublisher(Position.End).Wait();
             return builder;
@@ -137,7 +146,7 @@ namespace EMBC.ESS.Domain.Common
 
     public class SubscriptionManager
     {
-        private ILogger<SubscriptionManager> logger;
+        private readonly ILogger<SubscriptionManager> logger;
         private readonly IEventPublisher publisher;
         private readonly EventStoreClient conn;
         private StreamSubscription sub;
@@ -176,5 +185,35 @@ namespace EMBC.ESS.Domain.Common
                 await Task.Delay(TimeSpan.FromSeconds(5).Milliseconds).ContinueWith(_ => SubscribePublisher(lastKnownPosition));
             }
         }
+    }
+
+    public class ESReadModelRepository<TItem> : IReadModelRepository<TItem> where TItem : AggregateRoot
+    {
+        private readonly IRepository<TItem> repository;
+        private readonly EventStoreClient conn;
+        private static readonly string streamPrefix = typeof(TItem).FullName;
+
+        public ESReadModelRepository(IRepository<TItem> repository, EventStoreClient conn)
+        {
+            this.repository = repository;
+            this.conn = conn;
+        }
+
+        public IAsyncEnumerable<TItem> Get(Func<TItem, bool> predicate = null)
+        {
+            var query = conn
+                .ReadStreamAsync(Direction.Forwards, GetCategoryStreamName(), StreamPosition.Start, resolveLinkTos: true)
+                .SelectAwait(async e =>
+                {
+                    var originalStreamId = Encoding.UTF8.GetString(e.Event.Data.ToArray());
+                    return await repository.GetByIdAsync(GetIdFromStreamName(originalStreamId));
+                });
+
+            return predicate != null ? query.Where(predicate) : query;
+        }
+
+        private static string GetCategoryStreamName() => $"$category-{streamPrefix}";
+
+        private static Guid GetIdFromStreamName(string streamName) => Guid.Parse(streamName.Substring(streamPrefix.Length + 1));
     }
 }

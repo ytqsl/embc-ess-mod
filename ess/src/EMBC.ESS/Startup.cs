@@ -20,7 +20,9 @@ namespace EMBC.ESS
             services.AddESEventStore();
             services.AddJasperMessageBus();
             services.AddTransient<IRepository<Registration>, Repository<Registration>>();
+            services.AddTransient<IReadModelRepository<Registration>, ESReadModelRepository<Registration>>();
             services.AddTransient<IRegistrantProfileReadModelRepository, RegistrantProfileReadModelRepository>();
+            services.AddTransient<RegistrantProfileReadModelBuilder>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,7 +50,10 @@ namespace EMBC.ESS
                 endpoints.MapControllerRoute(name: "areas", pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
             });
-            app.InitializeESEventStore(typeof(ReadModelEventHandler));
+            app.InitializeESEventStore(
+                //handlersToReplay: new[] { typeof(ReadModelEventHandler) },
+                readModelBuilders: new[] { typeof(RegistrantProfileReadModelBuilder) }
+                );
         }
     }
 }
