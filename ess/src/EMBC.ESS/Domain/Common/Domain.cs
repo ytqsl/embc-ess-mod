@@ -46,9 +46,9 @@ namespace EMBC.ESS.Domain.Common
 
     public interface IEventStore
     {
-        Task SaveEventsAsync(string streamName, IEnumerable<Event> events, ulong expectedVersion);
+        Task SaveEventsAsync(string stream, IEnumerable<Event> events, ulong expectedVersion);
 
-        IAsyncEnumerable<Event> GetEventsAsync(string streamName);
+        IAsyncEnumerable<Event> GetEventsAsync(string stream);
     }
 
 #pragma warning disable CA1032, S3925
@@ -86,7 +86,9 @@ namespace EMBC.ESS.Domain.Common
 
     public interface IReadModelRepository<TItem> where TItem : AggregateRoot
     {
-        IAsyncEnumerable<TItem> Get(Func<TItem, bool> predicate = null);
+        IAsyncEnumerable<TItem> GetAsync(Func<TItem, bool> filter = null);
+
+        Task<TItem> GetByIdAsync(Guid id);
     }
 
     public abstract class AggregateRoot

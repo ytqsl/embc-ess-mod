@@ -199,21 +199,30 @@ namespace EMBC.ESS.Domain.Common
             this.conn = conn;
         }
 
-        public IAsyncEnumerable<TItem> Get(Func<TItem, bool> predicate = null)
+        public IAsyncEnumerable<TItem> GetAsync(Func<TItem, bool> filter = null)
         {
             var query = conn
-                .ReadStreamAsync(Direction.Forwards, GetCategoryStreamName(), StreamPosition.Start, resolveLinkTos: true)
+                .ReadStreamAsync(Direction.Forwards, GetCategoryStreamName(), StreamPosition.Start)
                 .SelectAwait(async e =>
                 {
                     var originalStreamId = Encoding.UTF8.GetString(e.Event.Data.ToArray());
-                    return await repository.GetByIdAsync(GetIdFromStreamName(originalStreamId));
+                    return await GetByIdAsync(GetIdFromStreamName(originalStreamId));
                 });
 
-            return predicate != null ? query.Where(predicate) : query;
+            if (filter != null) { query = query.Where(filter); }
+
+            return query;
+        }
+
+        public async Task<TItem> GetByIdAsync(Guid id)
+        {
+            return await repository.GetByIdAsync(id);
         }
 
         private static string GetCategoryStreamName() => $"$category-{streamPrefix}";
 
         private static Guid GetIdFromStreamName(string streamName) => Guid.Parse(streamName.Substring(streamPrefix.Length + 1));
+
+        private static string GetStreamName(Guid id) => $"{typeof(TItem).FullName}-{id}";
     }
 }

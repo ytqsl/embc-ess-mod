@@ -21,8 +21,9 @@ namespace EMBC.ESS
             services.AddJasperMessageBus();
             services.AddTransient<IRepository<Registration>, Repository<Registration>>();
             services.AddTransient<IReadModelRepository<Registration>, ESReadModelRepository<Registration>>();
-            services.AddTransient<IRegistrantProfileReadModelRepository, RegistrantProfileReadModelRepository>();
-            services.AddTransient<RegistrantProfileReadModelBuilder>();
+            //services.AddTransient<IRegistrantProfileReadModelRepository, RegistrantProfileReadModelRepository>();
+            //services.AddTransient<RegistrantProfileReadModelBuilder>();
+            services.AddTransient<IRegistrantProfileReadModelRepository, ESRegistrationProfileReadModel>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,7 +53,7 @@ namespace EMBC.ESS
             });
             app.InitializeESEventStore(
                 //handlersToReplay: new[] { typeof(ReadModelEventHandler) },
-                readModelBuilders: new[] { typeof(RegistrantProfileReadModelBuilder) }
+                //readModelBuilders: new[] { typeof(RegistrantProfileReadModelBuilder) }
                 );
         }
     }

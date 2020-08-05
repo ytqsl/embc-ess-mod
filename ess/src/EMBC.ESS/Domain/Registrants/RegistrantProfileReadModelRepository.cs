@@ -70,7 +70,7 @@ namespace EMBC.ESS.Domain.Registrants
 
         public async Task BuildAsync()
         {
-            await foreach (var r in esRepository.Get())
+            await foreach (var r in esRepository.GetAsync())
             {
                 await repository.AddAsync(new RegistrantProfile
                 {
@@ -81,5 +81,51 @@ namespace EMBC.ESS.Domain.Registrants
                 });
             }
         }
+    }
+
+    public class ESRegistrationProfileReadModel : IRegistrantProfileReadModelRepository
+    {
+        private readonly IReadModelRepository<Registration> readModelRepository;
+
+        public ESRegistrationProfileReadModel(IReadModelRepository<Registration> readModelRepository)
+        {
+            this.readModelRepository = readModelRepository;
+        }
+
+        public Task AddAsync(RegistrantProfile profile)
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task<IEnumerable<RegistrantProfile>> GetAllAsync(string firstName = null, string lastName = null, string dateOfBirth = null)
+        {
+            await Task.CompletedTask;
+            return readModelRepository.GetAsync(
+                a =>
+                (firstName == null || a.Name.StartsWith(firstName)) &&
+                (lastName == null || a.Name.EndsWith(lastName)) &&
+                (dateOfBirth == null || !a.Idenfifiers.Any(i => i.Key == "date_of_birth") || a.Idenfifiers.First(i => i.Key == "date_of_birth").Value.Equals(dateOfBirth))
+            ).Select(ToProfile).ToEnumerable().ToArray();
+        }
+
+        public async Task<RegistrantProfile> GetByIdAsync(Guid id)
+        {
+            var registration = await readModelRepository.GetByIdAsync(id);
+            if (registration == null) return null;
+            return ToProfile(registration);
+        }
+
+        public Task Update(RegistrantProfile profile)
+        {
+            return Task.CompletedTask;
+        }
+
+        private RegistrantProfile ToProfile(Registration r) => new RegistrantProfile
+        {
+            Id = r.Id,
+            Address = r.Address,
+            DateOfBirth = r.Idenfifiers.FirstOrDefault(i => i.Key == "date_of_birth").Value,
+            Name = r.Name
+        };
     }
 }
