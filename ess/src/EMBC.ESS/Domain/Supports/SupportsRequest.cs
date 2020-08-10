@@ -30,6 +30,7 @@ namespace EMBC.ESS.Domain.Supports
 
         private void Apply(SupportsRequestReceived evt)
         {
+            Id = evt.ReferenceNumber;
         }
 
 #pragma warning restore IDE0051 // Remove unused private members

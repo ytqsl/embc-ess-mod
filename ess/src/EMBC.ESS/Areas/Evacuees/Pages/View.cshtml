@@ -8,4 +8,7 @@
         <li>DoB: <span>@Html.DisplayFor(m => m.Profile.DateOfBirth)</span></li>
         <li>Address: <span>@Html.DisplayFor(m => m.Profile.Address)</span></li>
     </ul>
+    <section>
+        Evacuated? click&nbsp;<a asp-page="RequestSupports" asp-route-id="@Model.Profile.Id">here</a>&nbsp;to request supports
+    </section>
 </article>

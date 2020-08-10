@@ -1,9 +1,15 @@
-﻿@page
+﻿@page "{id}"
 @model EMBC.ESS.Areas.Evacuees.Pages.RequestSupportsModel
 
 <h2>Register as evacuee</h2>
 <form asp-antiforgery="true" method="post">
     <p asp-validation-summary="ModelOnly"></p>
+    <input asp-for="Data.RegistrantId" type="hidden" />
+    <p>
+        <label asp-for="Data.SourceAddress"></label><br />
+        <input asp-for="Data.SourceAddress" />
+        <span asp-validation-for="Data.SourceAddress"></span>
+    </p>
     <p>
         <label asp-for="Data.HasInsurance"></label><br />
         <input asp-for="Data.HasInsurance" />
@@ -14,16 +20,30 @@
         <input asp-for="Data.FoodRequired" />
         <span asp-validation-for="Data.FoodRequired"></span>
     </p>
-       <p>
+    <p>
         <label asp-for="Data.Member1Name"></label><br />
         <input asp-for="Data.Member1Name" />
         <span asp-validation-for="Data.Member1Name"></span>
     </p>
-     </p>
-       <p>
+    <p>
+        <label asp-for="Data.Member1DateOfBirth"></label><br />
+        <input asp-for="Data.Member1DateOfBirth" />
+        <span asp-validation-for="Data.Member1DateOfBirth"></span>
+    </p>
+    <p>
         <label asp-for="Data.Animal1Type"></label><br />
         <input asp-for="Data.Animal1Type" />
         <span asp-validation-for="Data.Animal1Type"></span>
-    </p> 
-    <input type="submit" value="Register" />
+    </p>
+    <p>
+        <label asp-for="Data.Animal1Quantity"></label><br />
+        <input asp-for="Data.Animal1Quantity" />
+        <span asp-validation-for="Data.Animal1Quantity"></span>
+    </p>
+    <p>
+        <label asp-for="Data.Animal1HasFoodSupplies"></label><br />
+        <input asp-for="Data.Animal1HasFoodSupplies" />
+        <span asp-validation-for="Data.Animal1HasFoodSupplies"></span>
+    </p>
+    <input type="submit" value="Request" />
 </form>

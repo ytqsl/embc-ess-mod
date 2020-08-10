@@ -2,6 +2,7 @@
 using EMBC.ESS.Domain.Common.EventStore;
 using EMBC.ESS.Domain.Common.Jasper;
 using EMBC.ESS.Domain.Registrants;
+using EMBC.ESS.Domain.Supports;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -22,6 +23,9 @@ namespace EMBC.ESS
             services.AddESEventStore();
             services.AddJasperMessageBus();
             services.AddTransient<IRepository<Registration>, Repository<Registration>>();
+            services.AddTransient<IRepository<SupportsFile>, Repository<SupportsFile>>();
+            services.AddTransient<IRepository<SupportsRequest>, Repository<SupportsRequest>>();
+            services.AddTransient<ISupportsFileFactory, SupportFileFactory>();
             services.AddTransient<IReadModelRepository<Registration>, ESReadModelRepository<Registration>>();
             //services.AddTransient<IRegistrantProfileReadModelRepository, RegistrantProfileReadModelRepository>();
             //services.AddTransient<RegistrantProfileReadModelBuilder>();

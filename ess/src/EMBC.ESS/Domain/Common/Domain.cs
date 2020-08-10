@@ -95,7 +95,7 @@ namespace EMBC.ESS.Domain.Common
     {
         private readonly List<Event> changes = new List<Event>();
         public string Id { get; protected set; }
-        public ulong Version { get; private set; }
+        public ulong Version { get; private set; } = ulong.MaxValue;
 
         internal IEnumerable<Event> GetUncommittedChanges()
         {

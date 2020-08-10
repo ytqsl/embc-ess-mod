@@ -35,19 +35,19 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
             public string Animal1Type { get; set; }
 
             [Display(Name = "Do you have enough food for the animal(s)?")]
-            public bool? Animal1HasFoodSupplies { get; set; }
+            public bool Animal1HasFoodSupplies { get; set; }
 
             [Display(Name = "How many animals?")]
             public int? Animal1Quantity { get; set; }
 
             [Display(Name = "Do you have insurance?")]
-            public bool? HasInsurance { get; set; }
+            public bool HasInsurance { get; set; }
 
             [Display(Name = "Do you require any medications?")]
             public string MedicationRequirements { get; set; }
 
             [Display(Name = "Do you require food?")]
-            public bool? FoodRequired { get; set; }
+            public bool FoodRequired { get; set; }
         }
 
         [BindProperty]
@@ -55,7 +55,7 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
 
         public IActionResult OnGet(string id)
         {
-            Data.RegistrantId = id;
+            Data = new ViewModel { RegistrantId = id };
             return Page();
         }
 

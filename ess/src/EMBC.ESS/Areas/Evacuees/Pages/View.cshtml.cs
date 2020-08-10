@@ -11,6 +11,8 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
     {
         public class ProfileViewModel
         {
+            public string Id { get; set; }
+
             [Display(Name = "Full Name")]
             public string Name { get; set; }
 
@@ -36,10 +38,12 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
             var profile = await bus.QueryAsync(new ProfileByIdQuery(id));
             Profile = new ProfileViewModel
             {
+                Id = id,
                 Address = profile.Address,
                 DateOfBirth = profile.DateOfBirth,
                 Name = profile.Name
             };
+
             return Page();
         }
     }

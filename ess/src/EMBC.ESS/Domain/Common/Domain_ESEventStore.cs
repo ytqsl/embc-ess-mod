@@ -11,7 +11,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using EventTypeFilter = EventStore.Client.EventTypeFilter;
+
+using EventStoreClientNS = EventStore.Client;
 
 namespace EMBC.ESS.Domain.Common.EventStore
 {
@@ -34,7 +35,7 @@ namespace EMBC.ESS.Domain.Common.EventStore
         {
             Trace.Assert(!string.IsNullOrEmpty(eventStreamId));
             Trace.Assert(events != null);
-            var revision = expectedVersion == 0 ? StreamRevision.None : new StreamRevision(expectedVersion);
+            var revision = expectedVersion == ulong.MaxValue ? StreamRevision.None : new StreamRevision(expectedVersion);
             var serializedEvents = events.Select(e => e.FromDomainEvent()).ToArray();
             await conn.AppendToStreamAsync(eventStreamId, revision, serializedEvents);
         }
@@ -170,7 +171,7 @@ namespace EMBC.ESS.Domain.Common.EventStore
                         await publisher.PublishAsync(e.ToDomainEvent());
                         lastKnownPosition = e.Event.Position;
                     },
-                    filterOptions: new SubscriptionFilterOptions(EventTypeFilter.ExcludeSystemEvents()),
+                    filterOptions: new SubscriptionFilterOptions(EventStoreClientNS.EventTypeFilter.ExcludeSystemEvents()),
                     subscriptionDropped: (sub, reason, e) =>
                     {
                         logger.LogError("EventStore dropped subscription {0} of event publisher: {1}. Resubscribing from position {2}...", sub.SubscriptionId, reason, lastKnownPosition);
@@ -244,18 +245,27 @@ namespace EMBC.ESS.Domain.Common.EventStore
         public async Task<ulong> NextAsync<TItem>() where TItem : AggregateRoot
         {
             var streamName = $"sequence-{typeof(TItem).FullName}";
-            var lastSequence = (SequenceEvent)await eventStore.GetEventsAsync(streamName).FirstOrDefaultAsync();
-            if (lastSequence == null)
+            ulong nextSequence;
+            ulong nextVersion;
+            ulong expectedVersion;
+            try
             {
-                lastSequence = new SequenceEvent { LastSequenceValue = 1 };
+                var lastSequenceEvent = (SequenceEvent)await eventStore.GetEventsAsync(streamName).SingleOrDefaultAsync();
+                nextSequence = lastSequenceEvent.LastSequenceValue + 1;
+                expectedVersion = lastSequenceEvent.Version;
+                nextVersion = expectedVersion + 1;
             }
-            else
+            catch (EventStoreClientNS.StreamNotFoundException)
             {
-                lastSequence = new SequenceEvent { LastSequenceValue = lastSequence.LastSequenceValue + 1, Version = lastSequence.Version + 1 };
+                //new sequence will be created
+                nextSequence = 1;
+                expectedVersion = ulong.MaxValue;
+                nextVersion = 0;
             }
-            await eventStore.SaveEventsAsync(streamName, new[] { lastSequence }, lastSequence.Version);
 
-            return lastSequence.LastSequenceValue;
+            await eventStore.SaveEventsAsync(streamName, new[] { new SequenceEvent { Version = nextVersion, LastSequenceValue = nextSequence } }, expectedVersion);
+
+            return nextSequence;
         }
     }
 }
