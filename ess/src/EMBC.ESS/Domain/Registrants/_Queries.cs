@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using EMBC.ESS.Domain.Common;
 
 namespace EMBC.ESS.Domain.Registrants
 {
     public class ProfileByIdQuery : IQuery<RegistrantProfile>
     {
-        public ProfileByIdQuery(Guid id)
+        public ProfileByIdQuery(string id)
         {
             Id = id;
         }
 
-        public Guid Id { get; }
+        public string Id { get; }
     }
 
     public class ProfilesQuery : IQuery<IEnumerable<RegistrantProfile>>

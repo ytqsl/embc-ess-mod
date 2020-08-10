@@ -1,4 +1,6 @@
 ﻿using EMBC.ESS.Domain.Common;
+using EMBC.ESS.Domain.Common.EventStore;
+using EMBC.ESS.Domain.Common.Jasper;
 using EMBC.ESS.Domain.Registrants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;

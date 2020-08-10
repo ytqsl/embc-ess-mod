@@ -13,7 +13,7 @@ namespace EMBC.ESS.Domain.Registrants
             this.repository = repository;
         }
 
-        public async Task<Guid> Handle(RegisterNew cmd)
+        public async Task<string> Handle(RegisterNew cmd)
         {
             var registration = new Registration(cmd.Name, cmd.Address, cmd.DateOfBirth);
             await repository.SaveAsync(registration);

@@ -81,20 +81,20 @@ namespace EMBC.ESS.Domain.Common
 
         Task SaveAsync(TItem aggregate);
 
-        Task<TItem> GetByIdAsync(Guid id);
+        Task<TItem> GetByIdAsync(string id);
     }
 
     public interface IReadModelRepository<TItem> where TItem : AggregateRoot
     {
         IAsyncEnumerable<TItem> GetAsync(Func<TItem, bool> filter = null);
 
-        Task<TItem> GetByIdAsync(Guid id);
+        Task<TItem> GetByIdAsync(string id);
     }
 
     public abstract class AggregateRoot
     {
         private readonly List<Event> changes = new List<Event>();
-        public Guid Id { get; protected set; }
+        public string Id { get; protected set; }
         public ulong Version { get; private set; }
 
         internal IEnumerable<Event> GetUncommittedChanges()
@@ -169,7 +169,7 @@ namespace EMBC.ESS.Domain.Common
             await SaveAsync(aggregate, aggregate.Version);
         }
 
-        public async Task<TItem> GetByIdAsync(Guid id)
+        public async Task<TItem> GetByIdAsync(string id)
         {
             var aggregate = await factory();
             var events = _storage.GetEventsAsync(GetStreamName(id));
@@ -177,7 +177,7 @@ namespace EMBC.ESS.Domain.Common
             return aggregate;
         }
 
-        private static string GetStreamName(Guid id) => $"{typeof(TItem).FullName}-{id}";
+        private static string GetStreamName(string id) => $"{typeof(TItem).FullName}-{id}";
     }
 
     public abstract class DomainException : ApplicationException
@@ -197,6 +197,11 @@ namespace EMBC.ESS.Domain.Common
         protected DomainException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
+    }
+
+    public interface IProvideSequenceNumbers
+    {
+        Task<ulong> NextAsync<TItem>() where TItem : AggregateRoot;
     }
 
     #endregion Domain

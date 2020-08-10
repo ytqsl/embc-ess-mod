@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
 using EMBC.ESS.Domain.Registrants;
@@ -32,7 +31,7 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
         [ViewData]
         public ProfileViewModel Profile { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(Guid id)
+        public async Task<IActionResult> OnGetAsync(string id)
         {
             var profile = await bus.QueryAsync(new ProfileByIdQuery(id));
             Profile = new ProfileViewModel

@@ -2,7 +2,7 @@
 using Jasper;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EMBC.ESS.Domain.Common
+namespace EMBC.ESS.Domain.Common.Jasper
 {
     public class JasperServiceBus : IBus
     {

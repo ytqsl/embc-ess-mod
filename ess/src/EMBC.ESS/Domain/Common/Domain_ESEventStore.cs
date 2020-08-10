@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using EventTypeFilter = EventStore.Client.EventTypeFilter;
 
-namespace EMBC.ESS.Domain.Common
+namespace EMBC.ESS.Domain.Common.EventStore
 {
     public class ESEventStore : IEventStore
     {
@@ -82,6 +82,7 @@ namespace EMBC.ESS.Domain.Common
             services.AddSingleton<IEventStore, ESEventStore>();
             services.AddSingleton<EventsReplayer>();
             services.AddSingleton<SubscriptionManager>();
+            services.AddTransient<IProvideSequenceNumbers, SequenceNumberProvider>();
             return services;
         }
 
@@ -214,15 +215,47 @@ namespace EMBC.ESS.Domain.Common
             return query;
         }
 
-        public async Task<TItem> GetByIdAsync(Guid id)
+        public async Task<TItem> GetByIdAsync(string id)
         {
             return await repository.GetByIdAsync(id);
         }
 
         private static string GetCategoryStreamName() => $"$category-{streamPrefix}";
 
-        private static Guid GetIdFromStreamName(string streamName) => Guid.Parse(streamName.Substring(streamPrefix.Length + 1));
+        private static string GetIdFromStreamName(string streamName) => streamName.Substring(streamPrefix.Length + 1);
 
-        private static string GetStreamName(Guid id) => $"{typeof(TItem).FullName}-{id}";
+        private static string GetStreamName(string id) => $"{typeof(TItem).FullName}-{id}";
+    }
+
+    public class SequenceNumberProvider : IProvideSequenceNumbers
+    {
+        private class SequenceEvent : Event
+        {
+            public ulong LastSequenceValue { get; set; }
+        }
+
+        private readonly IEventStore eventStore;
+
+        public SequenceNumberProvider(IEventStore eventStore)
+        {
+            this.eventStore = eventStore;
+        }
+
+        public async Task<ulong> NextAsync<TItem>() where TItem : AggregateRoot
+        {
+            var streamName = $"sequence-{typeof(TItem).FullName}";
+            var lastSequence = (SequenceEvent)await eventStore.GetEventsAsync(streamName).FirstOrDefaultAsync();
+            if (lastSequence == null)
+            {
+                lastSequence = new SequenceEvent { LastSequenceValue = 1 };
+            }
+            else
+            {
+                lastSequence = new SequenceEvent { LastSequenceValue = lastSequence.LastSequenceValue + 1, Version = lastSequence.Version + 1 };
+            }
+            await eventStore.SaveEventsAsync(streamName, new[] { lastSequence }, lastSequence.Version);
+
+            return lastSequence.LastSequenceValue;
+        }
     }
 }

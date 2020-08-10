@@ -14,12 +14,12 @@ namespace EMBC.ESS.Domain.Registrants
 
         Task<IEnumerable<RegistrantProfile>> GetAllAsync(string firstName = null, string lastName = null, string dateOfBirth = null);
 
-        Task<RegistrantProfile> GetByIdAsync(Guid id);
+        Task<RegistrantProfile> GetByIdAsync(string id);
     }
 
     public class RegistrantProfile
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Address { get; set; }
         public string DateOfBirth { get; set; }
@@ -49,7 +49,7 @@ namespace EMBC.ESS.Domain.Registrants
                 (string.IsNullOrWhiteSpace(dateOfBirth) || p.DateOfBirth.Equals(dateOfBirth, StringComparison.OrdinalIgnoreCase)));
         }
 
-        public async Task<RegistrantProfile> GetByIdAsync(Guid guid)
+        public async Task<RegistrantProfile> GetByIdAsync(string guid)
         {
             await Task.CompletedTask;
             var profile = profiles.SingleOrDefault(p => p.Id == guid);
@@ -108,7 +108,7 @@ namespace EMBC.ESS.Domain.Registrants
             ).Select(ToProfile).ToEnumerable().ToArray();
         }
 
-        public async Task<RegistrantProfile> GetByIdAsync(Guid id)
+        public async Task<RegistrantProfile> GetByIdAsync(string id)
         {
             var registration = await readModelRepository.GetByIdAsync(id);
             if (registration == null) return null;

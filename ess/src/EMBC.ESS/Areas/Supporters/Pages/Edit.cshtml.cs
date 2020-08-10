@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
@@ -17,7 +16,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
         public class Command
         {
             [Required]
-            public Guid Id { get; set; }
+            public string Id { get; set; }
 
             [Display(Name = "Full Name"), Required]
             public string Name { get; set; }
@@ -35,7 +34,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
             this.querySender = querySender;
         }
 
-        public async Task<IActionResult> OnGetAsync(Guid id)
+        public async Task<IActionResult> OnGetAsync(string id)
         {
             var profile = await querySender.QueryAsync(new ProfileByIdQuery(id));
             Data = new Command

@@ -1,0 +1,29 @@
+﻿@page
+@model EMBC.ESS.Areas.Evacuees.Pages.RequestSupportsModel
+
+<h2>Register as evacuee</h2>
+<form asp-antiforgery="true" method="post">
+    <p asp-validation-summary="ModelOnly"></p>
+    <p>
+        <label asp-for="Data.HasInsurance"></label><br />
+        <input asp-for="Data.HasInsurance" />
+        <span asp-validation-for="Data.HasInsurance"></span>
+    </p>
+    <p>
+        <label asp-for="Data.FoodRequired"></label><br />
+        <input asp-for="Data.FoodRequired" />
+        <span asp-validation-for="Data.FoodRequired"></span>
+    </p>
+       <p>
+        <label asp-for="Data.Member1Name"></label><br />
+        <input asp-for="Data.Member1Name" />
+        <span asp-validation-for="Data.Member1Name"></span>
+    </p>
+     </p>
+       <p>
+        <label asp-for="Data.Animal1Type"></label><br />
+        <input asp-for="Data.Animal1Type" />
+        <span asp-validation-for="Data.Animal1Type"></span>
+    </p> 
+    <input type="submit" value="Register" />
+</form>
