@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -84,11 +87,41 @@ namespace EMBC.ESS.Domain.Common
         Task<TItem> GetByIdAsync(string id);
     }
 
-    public interface IReadModelRepository<TItem> where TItem : AggregateRoot
-    {
-        IAsyncEnumerable<TItem> GetAsync(Func<TItem, bool> filter = null);
+    //public interface IReadModelRepository<TItem> where TItem : AggregateRoot
+    //{
+    //    IAsyncEnumerable<TItem> GetAsync(Func<TItem, bool> filter = null);
 
-        Task<TItem> GetByIdAsync(string id);
+    //    Task<TItem> GetByIdAsync(string id);
+    //}
+    public interface IReadModelRepository<TReadModel>
+    {
+        Task SetAsync(string key, TReadModel item);
+
+        IAsyncEnumerable<TReadModel> GetAsync(Func<TReadModel, bool> filter = null);
+
+        Task<TReadModel> GetByKeyAsync(string key);
+    }
+
+    public class InMemoryReadModelRepository<TReadModel> : IReadModelRepository<TReadModel>
+    {
+        private ConcurrentDictionary<string, TReadModel> data = new ConcurrentDictionary<string, TReadModel>();
+
+        public IAsyncEnumerable<TReadModel> GetAsync(Func<TReadModel, bool> filter = null)
+        {
+            return data.Values.Where(filter).ToAsyncEnumerable();
+        }
+
+        public async Task<TReadModel> GetByKeyAsync(string key)
+        {
+            await Task.CompletedTask;
+            return data.GetValueOrDefault(key);
+        }
+
+        public async Task SetAsync(string key, TReadModel item)
+        {
+            await Task.CompletedTask;
+            data.AddOrUpdate(key, item, (k, v) => item);
+        }
     }
 
     public abstract class AggregateRoot

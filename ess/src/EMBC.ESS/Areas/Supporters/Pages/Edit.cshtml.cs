@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
+using EMBC.ESS.Domain.ReadModels.RegistrantProfiles;
 using EMBC.ESS.Domain.Registrants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -36,7 +37,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            var profile = await querySender.QueryAsync(new ProfileByIdQuery(id));
+            var profile = await querySender.QueryAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
             Data = new Command
             {
                 Id = profile.Id,

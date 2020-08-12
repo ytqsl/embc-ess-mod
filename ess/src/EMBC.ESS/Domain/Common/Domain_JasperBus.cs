@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EMBC.ESS.Domain.Common.Jasper
 {
-    public class JasperServiceBus : IBus
+    public class JasperServiceBus : ICommandSender, IQuerySender
     {
         private readonly IMessageContext messageContext;
 
@@ -13,10 +13,10 @@ namespace EMBC.ESS.Domain.Common.Jasper
             this.messageContext = messageContext;
         }
 
-        public async Task PublishAsync<T>(T evt) where T : Event
-        {
-            await messageContext.Publish(evt);
-        }
+        //public async Task PublishAsync<T>(T evt) where T : Event
+        //{
+        //    await messageContext.Publish(evt);
+        //}
 
         public async Task<TResponse> QueryAsync<TResponse>(IQuery<TResponse> command)
         {
@@ -38,7 +38,7 @@ namespace EMBC.ESS.Domain.Common.Jasper
     {
         public static IServiceCollection AddJasperMessageBus(this IServiceCollection services)
         {
-            services.AddTransient<IEventPublisher, JasperServiceBus>();
+            //services.AddTransient<IEventPublisher, JasperServiceBus>();
             services.AddTransient<ICommandSender, JasperServiceBus>();
             services.AddTransient<IQuerySender, JasperServiceBus>();
 

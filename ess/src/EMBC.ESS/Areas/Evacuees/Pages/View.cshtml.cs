@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
-using EMBC.ESS.Domain.Registrants;
+using EMBC.ESS.Domain.ReadModels.RegistrantProfiles;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -35,7 +35,8 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            var profile = await bus.QueryAsync(new ProfileByIdQuery(id));
+            var profile = await bus.QueryAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
+            if (profile == null) return NotFound();
             Profile = new ProfileViewModel
             {
                 Id = id,

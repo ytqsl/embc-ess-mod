@@ -5,11 +5,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using EventStore.Client;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 
 using EventStoreClientNS = EventStore.Client;
@@ -60,9 +60,9 @@ namespace EMBC.ESS.Domain.Common.EventStore
         }
     }
 
-    public static class ESEvenStoreConfigigurationEx
+    public static class ESEvenStoreConfigurationEx
     {
-        public static IServiceCollection AddESEventStore(this IServiceCollection services)
+        public static IServiceCollection AddESEventStore(this IServiceCollection services, Type[] readModels)
         {
             var settings = new EventStoreClientSettings
             {
@@ -81,151 +81,126 @@ namespace EMBC.ESS.Domain.Common.EventStore
             var conn = new EventStoreClient(settings);
             services.AddSingleton(conn);
             services.AddSingleton<IEventStore, ESEventStore>();
-            services.AddSingleton<EventsReplayer>();
-            services.AddSingleton<SubscriptionManager>();
             services.AddTransient<IProvideSequenceNumbers, SequenceNumberProvider>();
+            services.AddHostedService(sp => new ProjectorHost(sp, readModels));
             return services;
         }
+    }
 
-        public static IApplicationBuilder InitializeESEventStore(this IApplicationBuilder builder, Type[] handlersToReplay = null, Type[] readModelBuilders = null)
+    public class ProjectorHost : IHostedService
+    {
+        private readonly EventsProjector projector;
+
+        public ProjectorHost(IServiceProvider serviceProvider, Type[] readModelBuilders = null)
         {
-            var sp = builder.ApplicationServices;
-            var replayer = sp.GetRequiredService<EventsReplayer>();
-            if (handlersToReplay != null) replayer.ReplayInto(handlersToReplay).GetAwaiter().GetResult();
-            if (readModelBuilders != null)
-            {
-                foreach (var readModel in readModelBuilders)
-                {
-                    var instance = builder.ApplicationServices.GetRequiredService(readModel);
-                    var mi = readModel.GetMethod("BuildAsync");
-                    mi.Invoke(instance, new object[0]);
-                }
-            }
-            var subscriptionManager = sp.GetRequiredService<SubscriptionManager>();
-            subscriptionManager.SubscribePublisher(Position.End).Wait();
-            return builder;
+            projector = new EventsProjector(serviceProvider, readModelBuilders);
+        }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            await projector.StartAsync();
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            projector.Dispose();
         }
     }
 
-    public class EventsReplayer
+    public class EventsProjector : IDisposable
     {
-        private readonly IServiceProvider serviceProvider;
+        private StreamSubscription subscription;
+        private IServiceProvider serviceProvider;
+        private readonly Type[] readModelBuilderTypes;
+        private bool disposedValue;
 
-        public EventsReplayer(IServiceProvider serviceProvider)
+        public EventsProjector(IServiceProvider serviceProvider, params Type[] readModelBuilderTypes)
         {
             this.serviceProvider = serviceProvider;
+            this.readModelBuilderTypes = readModelBuilderTypes;
         }
 
-        public async Task ReplayInto(params Type[] handlersToReplay)
+        public async Task StartAsync() => await Project();
+
+        private async Task Project()
         {
             var conn = serviceProvider.GetRequiredService<EventStoreClient>();
-            await foreach (var handlerType in handlersToReplay.ToAsyncEnumerable())
+            foreach (var handlerType in readModelBuilderTypes)
             {
-                var handler = serviceProvider.GetRequiredService(handlerType);
-                await ReplayInto(conn, handler);
+                var eventPublisher = new EventStorePublisher(serviceProvider.GetRequiredService(handlerType));
+                await ProjectInto(conn, eventPublisher);
             }
         }
 
-        private async Task ReplayInto(EventStoreClient conn, object handler)
+        private async Task ProjectInto(EventStoreClient conn, IEventPublisher eventPublisher)
         {
-            var handlers = handler.GetType()
-                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(mi => mi.GetParameters().Length == 1)
-                     .Select(mi => new { mi = mi, et = mi.GetParameters()[0].ParameterType })
-                     .Where(m => typeof(Event).IsAssignableFrom(m.et))
-                    .ToDictionary(m => m.et);
+            Position checkpoint = Position.Start;
+            subscription = await conn.SubscribeToAllAsync(
+               start: checkpoint,
+               resolveLinkTos: true,
+               eventAppeared: async (sub, e, _) =>
+               {
+                   await eventPublisher.PublishAsync(e.ToDomainEvent());
+                   checkpoint = e.OriginalPosition.Value;
+               },
+               subscriptionDropped: (sub, reason, _) =>
+               {
+               },
+               filterOptions: new SubscriptionFilterOptions(EventStoreClientNS.EventTypeFilter.ExcludeSystemEvents()));
+        }
 
-            await conn.ReadAllAsync(Direction.Forwards, Position.Start)
-                .ForEachAsync(evt =>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
                 {
-                    if (evt.Event.EventType.StartsWith("$") || evt.OriginalStreamId.StartsWith("$")) return;
-                    var e = evt.ToDomainEvent();
-                    if (!handlers.ContainsKey(e.GetType())) return;
-                    handlers[e.GetType()].mi.Invoke(handler, new[] { e });
-                });
+                    if (subscription != null) subscription.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 
-    public class SubscriptionManager
+    public class EventStorePublisher : IEventPublisher
     {
-        private readonly ILogger<SubscriptionManager> logger;
-        private readonly IEventPublisher publisher;
-        private readonly EventStoreClient conn;
-        private StreamSubscription sub;
+        private readonly IDictionary<Type, MethodInfo[]> eventHandlersMap;
+        private readonly object handlerHost;
 
-        public SubscriptionManager(IServiceProvider serviceProvider)
+        public EventStorePublisher(object handlerHost)
         {
-            logger = serviceProvider.GetRequiredService<ILogger<SubscriptionManager>>();
-            publisher = serviceProvider.GetRequiredService<IEventPublisher>();
-            conn = serviceProvider.GetRequiredService<EventStoreClient>();
+            this.handlerHost = handlerHost;
+            var eventHandlers = this.handlerHost.GetType().GetMethods()
+                  .Where(mi => mi.Name.StartsWith("Handle") && mi.GetParameters().Length == 1 && typeof(Event).IsAssignableFrom(mi.GetParameters()[0].ParameterType));
+
+            eventHandlersMap = eventHandlers.GroupBy(mi => mi.GetParameters()[0].ParameterType).ToDictionary(g => g.Key, mi => mi.ToArray());
         }
 
-        public async Task SubscribePublisher(Position lastKnownPosition)
+        public async Task PublishAsync<T>(T evt) where T : Event
         {
-            logger.LogDebug("Subscribing event publisher to EventStore");
-            try
+            var eventType = evt.GetType();
+            if (!eventHandlersMap.TryGetValue(eventType, out var handlers)) { return; }
+            foreach (var handler in handlers)
             {
-                sub = await conn.SubscribeToAllAsync(lastKnownPosition,
-                    eventAppeared: async (sub, e, _) =>
-                    {
-                        await publisher.PublishAsync(e.ToDomainEvent());
-                        lastKnownPosition = e.Event.Position;
-                    },
-                    filterOptions: new SubscriptionFilterOptions(EventStoreClientNS.EventTypeFilter.ExcludeSystemEvents()),
-                    subscriptionDropped: (sub, reason, e) =>
-                    {
-                        logger.LogError("EventStore dropped subscription {0} of event publisher: {1}. Resubscribing from position {2}...", sub.SubscriptionId, reason, lastKnownPosition);
-                        sub.Dispose();
-                        SubscribePublisher(lastKnownPosition).Wait();
-                    });
-                logger.LogInformation("Subscribed event publisher to event store, subscription id {0}", sub.SubscriptionId);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Failed to subscribe event publisher to EventStore: {0}", e.Message);
-                if (sub != null) sub.Dispose();
-                await Task.Delay(TimeSpan.FromSeconds(5).Milliseconds).ContinueWith(_ => SubscribePublisher(lastKnownPosition));
-            }
-        }
-    }
-
-    public class ESReadModelRepository<TItem> : IReadModelRepository<TItem> where TItem : AggregateRoot
-    {
-        private readonly IRepository<TItem> repository;
-        private readonly EventStoreClient conn;
-        private static readonly string streamPrefix = typeof(TItem).FullName;
-
-        public ESReadModelRepository(IRepository<TItem> repository, EventStoreClient conn)
-        {
-            this.repository = repository;
-            this.conn = conn;
-        }
-
-        public IAsyncEnumerable<TItem> GetAsync(Func<TItem, bool> filter = null)
-        {
-            var query = conn
-                .ReadStreamAsync(Direction.Forwards, GetCategoryStreamName(), StreamPosition.Start)
-                .SelectAwait(async e =>
+                if (handler.ReturnType == typeof(Task) || handler.ReturnType == typeof(ValueTask))
                 {
-                    var originalStreamId = Encoding.UTF8.GetString(e.Event.Data.ToArray());
-                    return await GetByIdAsync(GetIdFromStreamName(originalStreamId));
-                });
-
-            if (filter != null) { query = query.Where(filter); }
-
-            return query;
+                    var result = (Task)handler.Invoke(handlerHost, new[] { evt });
+                    await result;
+                }
+                else
+                {
+                    handler.Invoke(handlerHost, new[] { evt });
+                }
+            }
         }
-
-        public async Task<TItem> GetByIdAsync(string id)
-        {
-            return await repository.GetByIdAsync(id);
-        }
-
-        private static string GetCategoryStreamName() => $"$category-{streamPrefix}";
-
-        private static string GetIdFromStreamName(string streamName) => streamName.Substring(streamPrefix.Length + 1);
-
-        private static string GetStreamName(string id) => $"{typeof(TItem).FullName}-{id}";
     }
 
     public class SequenceNumberProvider : IProvideSequenceNumbers

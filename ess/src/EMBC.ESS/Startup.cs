@@ -1,6 +1,8 @@
 ﻿using EMBC.ESS.Domain.Common;
 using EMBC.ESS.Domain.Common.EventStore;
 using EMBC.ESS.Domain.Common.Jasper;
+using EMBC.ESS.Domain.ReadModels;
+using EMBC.ESS.Domain.ReadModels.RegistrantProfiles;
 using EMBC.ESS.Domain.Registrants;
 using EMBC.ESS.Domain.Supports;
 using Microsoft.AspNetCore.Builder;
@@ -20,16 +22,18 @@ namespace EMBC.ESS
             services.AddRazorPages();
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
             //services.AddEmbeddedESEventStore();
-            services.AddESEventStore();
+            services.AddESEventStore(new[] { typeof(ReadModelBuilder) });
             services.AddJasperMessageBus();
             services.AddTransient<IRepository<Registration>, Repository<Registration>>();
             services.AddTransient<IRepository<SupportsFile>, Repository<SupportsFile>>();
             services.AddTransient<IRepository<SupportsRequest>, Repository<SupportsRequest>>();
             services.AddTransient<ISupportsFileFactory, SupportFileFactory>();
-            services.AddTransient<IReadModelRepository<Registration>, ESReadModelRepository<Registration>>();
+            //services.AddTransient<IReadModelRepository<Registration>, ESReadModelRepository<Registration>>();
             //services.AddTransient<IRegistrantProfileReadModelRepository, RegistrantProfileReadModelRepository>();
             //services.AddTransient<RegistrantProfileReadModelBuilder>();
-            services.AddTransient<IRegistrantProfileReadModelRepository, ESRegistrationProfileReadModel>();
+            services.AddTransient<ReadModelBuilder>();
+            services.AddSingleton<IReadModelRepository<RegistrantProfileView>, InMemoryReadModelRepository<RegistrantProfileView>>();
+            //services.AddTransient<IRegistrantProfileReadModelRepository, ESRegistrationProfileReadModel>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,6 +48,8 @@ namespace EMBC.ESS
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
+            app.UseDefaultFiles();
+            app.UseStatusCodePages();
 
             app.UseStaticFiles();
 
@@ -57,10 +63,11 @@ namespace EMBC.ESS
                 endpoints.MapControllerRoute(name: "areas", pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
             });
-            app.InitializeESEventStore(
-                //handlersToReplay: new[] { typeof(ReadModelEventHandler) },
-                //readModelBuilders: new[] { typeof(RegistrantProfileReadModelBuilder) }
-                );
+
+            //app.InitializeESEventStore(
+            //    //handlersToReplay: new[] { typeof(ReadModelEventHandler) },
+            //    readModelBuilders: new[] { typeof(ReadModelBuilder) }
+            //    );
         }
     }
 }
