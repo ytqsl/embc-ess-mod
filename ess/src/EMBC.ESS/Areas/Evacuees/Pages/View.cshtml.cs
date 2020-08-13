@@ -23,9 +23,9 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
             public string Address { get; set; }
         }
 
-        private readonly IQuerySender bus;
+        private readonly ICommandSender bus;
 
-        public ViewModel(IQuerySender bus)
+        public ViewModel(ICommandSender bus)
         {
             this.bus = bus;
         }
@@ -35,7 +35,7 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            var profile = await bus.QueryAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
+            var profile = await bus.SendAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
             if (profile == null) return NotFound();
             Profile = new ProfileViewModel
             {

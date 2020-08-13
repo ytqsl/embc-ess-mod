@@ -11,8 +11,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 {
     public class EditModel : PageModel
     {
-        private readonly ICommandSender commandSender;
-        private readonly IQuerySender querySender;
+        private readonly ICommandSender bus;
 
         public class Command
         {
@@ -29,15 +28,14 @@ namespace EMBC.ESS.Areas.Supporters.Pages
             public string Address { get; set; }
         }
 
-        public EditModel(ICommandSender commandSender, IQuerySender querySender)
+        public EditModel(ICommandSender bus)
         {
-            this.commandSender = commandSender;
-            this.querySender = querySender;
+            this.bus = bus;
         }
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            var profile = await querySender.QueryAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
+            var profile = await bus.SendAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
             Data = new Command
             {
                 Id = profile.Id,
@@ -59,7 +57,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
                 return Page();
             }
 
-            await commandSender.SendAsync(new UpdateDetails(Data.Id, Data.Name, Data.Address));
+            await bus.SendAsync(new UpdateDetails(Data.Id, Data.Name, Data.Address));
             return RedirectToPage("./View", new { Data.Id });
         }
     }

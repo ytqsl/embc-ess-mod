@@ -11,9 +11,9 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly IQuerySender bus;
+        private readonly ICommandSender bus;
 
-        public IndexModel(IQuerySender bus)
+        public IndexModel(ICommandSender bus)
         {
             this.bus = bus;
         }
@@ -37,7 +37,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 
         public async Task<IActionResult> OnGetAsync(string firstName, string lastName, string dateOfBirth)
         {
-            var profiles = await bus.QueryAsync(new RegistrantProfilesByPersonalDetailsQuery { DateOfBirth = dateOfBirth, FirstName = firstName, LastName = lastName });
+            var profiles = await bus.SendAsync(new RegistrantProfilesByPersonalDetailsQuery { DateOfBirth = dateOfBirth, FirstName = firstName, LastName = lastName });
 
             Profiles = profiles.Select(p => new ProfileViewModel
             {

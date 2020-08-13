@@ -9,7 +9,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 {
     public class ViewModel : PageModel
     {
-        private readonly IQuerySender bus;
+        private readonly ICommandSender bus;
 
         public class ProfileViewModel
         {
@@ -25,7 +25,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
             public string Address { get; set; }
         }
 
-        public ViewModel(IQuerySender bus)
+        public ViewModel(ICommandSender bus)
         {
             this.bus = bus;
         }
@@ -35,7 +35,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            var profile = await bus.QueryAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
+            var profile = await bus.SendAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
             Data = new ProfileViewModel
             {
                 Id = profile.Id.ToString(),

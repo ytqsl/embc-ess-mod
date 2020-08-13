@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Jasper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -23,19 +22,10 @@ namespace EMBC.ESS
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseJasper<ApiJasperOptions>()
                 .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
-    }
-
-    public class ApiJasperOptions : JasperOptions
-    {
-        public ApiJasperOptions()
-        {
-            Endpoints.DefaultLocalQueue.NotDurable();
-        }
     }
 }

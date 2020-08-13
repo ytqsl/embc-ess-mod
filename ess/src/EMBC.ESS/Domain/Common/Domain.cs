@@ -17,8 +17,6 @@ namespace EMBC.ESS.Domain.Common
 
     public interface ICommand<out TResponse> : ICommand { }
 
-    public interface IQuery<out TResponse> : IMessage { }
-
     public abstract class Event : IMessage
     {
         public ulong Version;
@@ -35,13 +33,6 @@ namespace EMBC.ESS.Domain.Common
     {
         Task PublishAsync<T>(T evt) where T : Event;
     }
-
-    public interface IQuerySender
-    {
-        Task<TResponse> QueryAsync<TResponse>(IQuery<TResponse> command);
-    }
-
-    public interface IBus : ICommandSender, IEventPublisher, IQuerySender { }
 
     #endregion Messaging
 

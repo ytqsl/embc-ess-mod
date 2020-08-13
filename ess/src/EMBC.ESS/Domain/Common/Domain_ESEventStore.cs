@@ -62,6 +62,12 @@ namespace EMBC.ESS.Domain.Common.EventStore
 
     public static class ESEvenStoreConfigurationEx
     {
+        public static IServiceCollection AddESEventStore(this IServiceCollection services)
+        {
+            var readModelBuilders = Assembly.GetExecutingAssembly().GetExportedTypes().Where(t => t.Name.EndsWith("Builder")).ToArray();
+            return services.AddESEventStore(readModelBuilders);
+        }
+
         public static IServiceCollection AddESEventStore(this IServiceCollection services, Type[] readModels)
         {
             var settings = new EventStoreClientSettings
@@ -83,6 +89,10 @@ namespace EMBC.ESS.Domain.Common.EventStore
             services.AddSingleton<IEventStore, ESEventStore>();
             services.AddTransient<IProvideSequenceNumbers, SequenceNumberProvider>();
             services.AddHostedService(sp => new ProjectorHost(sp, readModels));
+            foreach (var readModel in readModels)
+            {
+                services.AddTransient(readModel);
+            }
             return services;
         }
     }
