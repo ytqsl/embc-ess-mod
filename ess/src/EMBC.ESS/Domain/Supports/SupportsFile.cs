@@ -8,12 +8,9 @@ namespace EMBC.ESS.Domain.Supports
     {
 #pragma warning disable IDE0051 // Remove unused private members
 
-        private SupportsFileStatus status;
-
         private void Apply(SupportsFileOpened evt)
         {
             Id = evt.ReferenceNumber;
-            status = SupportsFileStatus.Active;
         }
 
         private void Apply(NoteAddedToSupportFile evt)
@@ -22,9 +19,9 @@ namespace EMBC.ESS.Domain.Supports
 
 #pragma warning restore IDE0051 // Remove unused private members
 
-        public SupportsFile(string referenceNumber, string userId, string taskId, DateTime time, IEnumerable<string> registrants, NeedsAssessment perliminaryAssessment, string supportsRequestReferenceNumber)
+        public SupportsFile(string referenceNumber, string userId, string taskId, DateTime time, string sourceAddress, IEnumerable<string> registrants, NeedsAssessment perliminaryAssessment, string supportsRequestReferenceNumber)
         {
-            ApplyChange(new SupportsFileOpened(referenceNumber, userId, time, taskId, registrants, perliminaryAssessment, supportsRequestReferenceNumber));
+            ApplyChange(new SupportsFileOpened(referenceNumber, userId, time, taskId, sourceAddress, registrants, perliminaryAssessment, supportsRequestReferenceNumber));
         }
 
         public void AddNote(string userId, string type, string content, DateTime time)
@@ -57,13 +54,13 @@ namespace EMBC.ESS.Domain.Supports
 
         public bool? HasInsurance { get; }
         public string MedicationRequirements { get; }
-        public bool? RequestFood { get; }
+        public bool RequiresFood { get; }
 
-        public NeedsAssessment(bool? hasInsurance, string medicationRequirements, bool? requestFood)
+        public NeedsAssessment(bool? hasInsurance, string medicationRequirements, bool requiresFood)
         {
             HasInsurance = hasInsurance;
             MedicationRequirements = medicationRequirements;
-            RequestFood = requestFood;
+            RequiresFood = requiresFood;
         }
 
         public void AddMember(string name, string dateOfBirth)

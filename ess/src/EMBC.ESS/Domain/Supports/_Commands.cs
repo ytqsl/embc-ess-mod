@@ -7,7 +7,7 @@ namespace EMBC.ESS.Domain.Supports
     public class RequestSupports : ICommand<string>
     {
         public RequestSupports(string registrant, DateTime time, string sourceAddress, IEnumerable<Member> members, IEnumerable<Animal> animals,
-            bool? hasInsurance, string medicationRequirements, bool? foodRequired)
+            bool hasInsurance, string medicationRequirements, bool foodRequired)
         {
             Registrant = registrant;
             Time = time;
@@ -25,9 +25,9 @@ namespace EMBC.ESS.Domain.Supports
 
         public IEnumerable<Member> Members { get; set; }
         public IEnumerable<Animal> Animals { get; set; }
-        public bool? HasInsurance { get; set; }
+        public bool HasInsurance { get; set; }
         public string MedicationRequirements { get; set; }
-        public bool? FoodRequired { get; set; }
+        public bool FoodRequired { get; set; }
 
         public class Member
         {
@@ -38,7 +38,7 @@ namespace EMBC.ESS.Domain.Supports
         public class Animal
         {
             public string Type { get; set; }
-            public bool? HasFoodSupplies { get; set; }
+            public bool HasFoodSupplies { get; set; }
             public int Quantity { get; set; }
         }
     }
@@ -46,7 +46,7 @@ namespace EMBC.ESS.Domain.Supports
     public class OpenSupportsFile : ICommand
     {
         public OpenSupportsFile(string userId, DateTime time, string taskId, string supportsRequestReferenceNumber, IEnumerable<string> registrantIds, string sourceAddress, IEnumerable<Member> members, IEnumerable<Animal> animals,
-            bool? hasInsurance, string medicationRequirements, bool? foodRequired, string recoveryPlanNote, string affectOnRegistrantNote, string referencesNote)
+            bool hasInsurance, string medicationRequirements, bool foodRequired, string recoveryPlanNote, string affectOnRegistrantNote, string referencesNote)
         {
             UserId = userId;
             Time = time;
@@ -75,9 +75,9 @@ namespace EMBC.ESS.Domain.Supports
 
         public IEnumerable<Member> Members { get; }
         public IEnumerable<Animal> Animals { get; }
-        public bool? HasInsurance { get; }
+        public bool HasInsurance { get; }
         public string MedicationRequirements { get; }
-        public bool? FoodRequired { get; }
+        public bool FoodRequired { get; }
         public string RecoveryPlanNote { get; }
         public string AffectOnRegistrantNote { get; }
         public string ReferencesNote { get; }

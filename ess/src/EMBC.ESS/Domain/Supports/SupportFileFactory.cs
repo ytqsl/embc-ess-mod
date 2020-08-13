@@ -26,7 +26,8 @@ namespace EMBC.ESS.Domain.Supports
             foreach (var animal in cmd.Animals) { perliminaryAssessment.AddAnimal(animal.Type, animal.Quantity, animal.HasFoodSupplies); }
             foreach (var member in cmd.Members) { perliminaryAssessment.AddMember(member.Name, member.DateOfBirth); }
 
-            var newFile = new SupportsFile(GetSupportFileReferenceNumber(nextSequence), cmd.UserId, cmd.TaskId, DateTime.Now, cmd.RegistrantIds, perliminaryAssessment, cmd.SupportsRequestReferenceNumber);
+            var newFile = new SupportsFile(GetSupportFileReferenceNumber(nextSequence), cmd.UserId, cmd.TaskId, DateTime.Now, cmd.SourceAddress,
+                cmd.RegistrantIds, perliminaryAssessment, cmd.SupportsRequestReferenceNumber);
             return newFile;
         }
 

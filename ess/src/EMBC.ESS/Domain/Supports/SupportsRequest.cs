@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using EMBC.ESS.Domain.Common;
 
 namespace EMBC.ESS.Domain.Supports
@@ -17,8 +18,8 @@ namespace EMBC.ESS.Domain.Supports
                 cmd.Registrant,
                 cmd.SourceAddress,
                 cmd.Members.Select(m => new SupportsRequestReceived.Member { Name = m.Name, DateOfBirth = m.DateOfBirth }),
-                cmd.Animals.Select(a => new SupportsRequestReceived.Animal { Type = a.Type, HasFoodSupplies = a.HasFoodSupplies }),
-                cmd.HasInsurance, cmd.MedicationRequirements, cmd.FoodRequired
+                cmd.Animals.Select(a => new SupportsRequestReceived.Animal { Type = a.Type, HasFoodSupplies = a.HasFoodSupplies, Quantity = a.Quantity }),
+                cmd.HasInsurance, cmd.MedicationRequirements, cmd.FoodRequired, DateTime.Now
                 ));
 
             return newRequest;

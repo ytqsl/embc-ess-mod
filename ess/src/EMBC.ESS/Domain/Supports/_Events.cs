@@ -7,7 +7,7 @@ namespace EMBC.ESS.Domain.Supports
     public class SupportsRequestReceived : Event
     {
         public SupportsRequestReceived(string referenceNumber, string registrantId, string sourceAddress, IEnumerable<Member> members, IEnumerable<Animal> animals,
-            bool? hasInsurance, string medicationRequirements, bool? foodRequired)
+            bool? hasInsurance, string medicationRequirements, bool foodRequired, DateTime time)
         {
             ReferenceNumber = referenceNumber;
             RegistrantId = registrantId;
@@ -17,6 +17,7 @@ namespace EMBC.ESS.Domain.Supports
             HasInsurance = hasInsurance;
             MedicationRequirements = medicationRequirements;
             FoodRequired = foodRequired;
+            Time = time;
         }
 
         public string ReferenceNumber { get; }
@@ -27,7 +28,8 @@ namespace EMBC.ESS.Domain.Supports
         public IEnumerable<Animal> Animals { get; }
         public bool? HasInsurance { get; }
         public string MedicationRequirements { get; }
-        public bool? FoodRequired { get; }
+        public bool FoodRequired { get; }
+        public DateTime Time { get; }
 
         public class Member
         {
@@ -38,18 +40,21 @@ namespace EMBC.ESS.Domain.Supports
         public class Animal
         {
             public string Type { get; set; }
-            public bool? HasFoodSupplies { get; set; }
+            public bool HasFoodSupplies { get; set; }
+            public int Quantity { get; set; }
         }
     }
 
     public class SupportsFileOpened : Event
     {
-        public SupportsFileOpened(string referenceNumber, string openingUserId, DateTime time, string taskId, IEnumerable<string> registrants,
+        public SupportsFileOpened(string referenceNumber, string openingUserId, DateTime time, string taskId,
+            string sourceAddress, IEnumerable<string> registrants,
             NeedsAssessment perliminaryAssessment, string supportsRequestReferenceNumber)
         {
             OpeningUserId = openingUserId;
             Time = time;
             TaskId = taskId;
+            SourceAddress = sourceAddress;
             Registrants = registrants;
             PerliminaryAssessment = perliminaryAssessment;
             SupportsRequestReferenceNumber = supportsRequestReferenceNumber;
@@ -59,6 +64,7 @@ namespace EMBC.ESS.Domain.Supports
         public string OpeningUserId { get; }
         public DateTime Time { get; }
         public string TaskId { get; }
+        public string SourceAddress { get; }
         public IEnumerable<string> Registrants { get; }
         public NeedsAssessment PerliminaryAssessment { get; }
         public string SupportsRequestReferenceNumber { get; }

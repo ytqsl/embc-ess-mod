@@ -2,7 +2,7 @@ version: "3"
 
 services:
   event-store:
-    image: docker.pkg.github.com/eventstore/eventstore/eventstore:20.6.1-alpha.0.49-buster-slim
+    image: docker.pkg.github.com/eventstore/eventstore/eventstore:ci
     ports:
     - 2113:2113
     volumes:
