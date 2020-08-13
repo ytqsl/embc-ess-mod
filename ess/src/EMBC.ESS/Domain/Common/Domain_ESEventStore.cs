@@ -235,7 +235,7 @@ namespace EMBC.ESS.Domain.Common.EventStore
             ulong expectedVersion;
             try
             {
-                var lastSequenceEvent = (SequenceEvent)await eventStore.GetEventsAsync(streamName).SingleOrDefaultAsync();
+                var lastSequenceEvent = (SequenceEvent)await eventStore.GetEventsAsync(streamName).LastOrDefaultAsync();
                 nextSequence = lastSequenceEvent.LastSequenceValue + 1;
                 expectedVersion = lastSequenceEvent.Version;
                 nextVersion = expectedVersion + 1;
@@ -246,6 +246,7 @@ namespace EMBC.ESS.Domain.Common.EventStore
                 nextSequence = 1;
                 expectedVersion = ulong.MaxValue;
                 nextVersion = 0;
+                //TODO: need to set stream metadata to keep only 1 event
             }
 
             await eventStore.SaveEventsAsync(streamName, new[] { new SequenceEvent { Version = nextVersion, LastSequenceValue = nextSequence } }, expectedVersion);

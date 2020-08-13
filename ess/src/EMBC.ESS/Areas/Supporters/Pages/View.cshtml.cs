@@ -23,6 +23,8 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 
             [Display(Name = "home Address")]
             public string Address { get; set; }
+
+            public string Status { get; set; }
         }
 
         public ViewModel(ICommandSender bus)
@@ -41,7 +43,8 @@ namespace EMBC.ESS.Areas.Supporters.Pages
                 Id = profile.Id.ToString(),
                 Address = profile.Address,
                 DateOfBirth = profile.DateOfBirth,
-                Name = profile.Name
+                Name = profile.Name,
+                Status = profile.Status
             };
             return Page();
         }

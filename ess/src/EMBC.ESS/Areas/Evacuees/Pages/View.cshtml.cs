@@ -21,6 +21,8 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
 
             [Display(Name = "Home Address")]
             public string Address { get; set; }
+
+            public string Status { get; set; }
         }
 
         private readonly ICommandSender bus;
@@ -42,7 +44,8 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
                 Id = id,
                 Address = profile.Address,
                 DateOfBirth = profile.DateOfBirth,
-                Name = profile.Name
+                Name = profile.Name,
+                Status = profile.Status
             };
 
             return Page();

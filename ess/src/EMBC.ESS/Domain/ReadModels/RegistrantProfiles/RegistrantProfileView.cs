@@ -14,6 +14,7 @@ namespace EMBC.ESS.Domain.ReadModels
         public DateTime LastUpdated { get; set; }
         public List<SupportsFileView> Files { get; set; } = new List<SupportsFileView>();
         public List<SupportsRequestView> PendingRequests { get; set; } = new List<SupportsRequestView>();
+        public string Status { get; set; }
     }
 
     public class SupportsFileView

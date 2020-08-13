@@ -30,6 +30,8 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 
             [Display(Name = "Home Address")]
             public string Address { get; set; }
+
+            public string Status { get; set; }
         }
 
         [ViewData]
@@ -44,7 +46,8 @@ namespace EMBC.ESS.Areas.Supporters.Pages
                 Id = p.Id.ToString(),
                 DateOfBirth = p.DateOfBirth,
                 Address = p.Address,
-                Name = p.Name
+                Name = p.Name,
+                Status = p.Status
             }); ;
             return Page();
         }
