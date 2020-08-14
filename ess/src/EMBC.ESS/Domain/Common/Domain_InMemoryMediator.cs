@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EMBC.ESS.Domain.Common
 {
@@ -11,10 +12,12 @@ namespace EMBC.ESS.Domain.Common
     {
         private readonly Dictionary<Type, MethodInfo> commandHandlersMap;
         private readonly IServiceProvider serviceProvider;
+        private readonly ILogger logger;
 
-        public InMemoryMediator(IServiceProvider serviceProvider, Type[] handlerHostTypes)
+        public InMemoryMediator(IServiceProvider serviceProvider, Type[] handlerHostTypes, ILogger logger)
         {
             this.serviceProvider = serviceProvider;
+            this.logger = logger;
             commandHandlersMap = new Dictionary<Type, MethodInfo>();
             foreach (var handlerHostType in handlerHostTypes)
             {
@@ -42,14 +45,22 @@ namespace EMBC.ESS.Domain.Common
             if (!commandHandlersMap.TryGetValue(commandType, out var handler)) { return; }
             var handlerHost = serviceProvider.GetRequiredService(handler.DeclaringType);
 
-            if (handler.ReturnType == typeof(Task) || handler.ReturnType == typeof(ValueTask))
+            try
             {
-                var result = (Task)handler.Invoke(handlerHost, new[] { command });
-                await result;
+                if (handler.ReturnType == typeof(Task) || handler.ReturnType == typeof(ValueTask))
+                {
+                    var result = (Task)handler.Invoke(handlerHost, new[] { command });
+                    await result;
+                }
+                else
+                {
+                    handler.Invoke(handlerHost, new[] { command });
+                }
             }
-            else
+            catch (Exception e)
             {
-                handler.Invoke(handlerHost, new[] { command });
+                logger.LogError(e, "Exception when invoking {0}.{1}", handler.DeclaringType.FullName, handler.Name);
+                throw;
             }
         }
 
@@ -85,7 +96,7 @@ namespace EMBC.ESS.Domain.Common
             {
                 services.AddTransient(handlerType);
             }
-            services.AddSingleton<ICommandSender, InMemoryMediator>(sp => new InMemoryMediator(sp, commandHandlerHosts));
+            services.AddSingleton<ICommandSender, InMemoryMediator>(sp => new InMemoryMediator(sp, commandHandlerHosts, sp.GetRequiredService<ILogger<InMemoryMediator>>()));
 
             return services;
         }

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EventStore.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 using EventStoreClientNS = EventStore.Client;
@@ -120,15 +121,17 @@ namespace EMBC.ESS.Domain.Common.EventStore
 
     public class EventsProjector : IDisposable
     {
-        private StreamSubscription subscription;
-        private IServiceProvider serviceProvider;
+        private readonly List<StreamSubscription> subscriptions = new List<StreamSubscription>();
+        private readonly IServiceProvider serviceProvider;
         private readonly Type[] readModelBuilderTypes;
+        private readonly ILogger logger;
         private bool disposedValue;
 
         public EventsProjector(IServiceProvider serviceProvider, params Type[] readModelBuilderTypes)
         {
             this.serviceProvider = serviceProvider;
             this.readModelBuilderTypes = readModelBuilderTypes;
+            logger = serviceProvider.GetRequiredService<ILogger<EventsProjector>>();
         }
 
         public async Task StartAsync() => await Project();
@@ -138,15 +141,15 @@ namespace EMBC.ESS.Domain.Common.EventStore
             var conn = serviceProvider.GetRequiredService<EventStoreClient>();
             foreach (var handlerType in readModelBuilderTypes)
             {
-                var eventPublisher = new EventStorePublisher(serviceProvider.GetRequiredService(handlerType));
-                await ProjectInto(conn, eventPublisher);
+                var checkpoint = Position.Start;
+                logger.LogDebug("Start {0} projection from position {1}", handlerType.FullName, checkpoint);
+                var eventPublisher = new EventStorePublisher(serviceProvider.GetRequiredService(handlerType), logger);
+                subscriptions.Add(await CreateSubscriptionForPublisher(conn, eventPublisher, checkpoint));
             }
         }
 
-        private async Task ProjectInto(EventStoreClient conn, IEventPublisher eventPublisher)
-        {
-            Position checkpoint = Position.Start;
-            subscription = await conn.SubscribeToAllAsync(
+        private async Task<StreamSubscription> CreateSubscriptionForPublisher(EventStoreClient conn, IEventPublisher eventPublisher, Position checkpoint) =>
+          await conn.SubscribeToAllAsync(
                start: checkpoint,
                resolveLinkTos: true,
                eventAppeared: async (sub, e, _) =>
@@ -156,9 +159,9 @@ namespace EMBC.ESS.Domain.Common.EventStore
                },
                subscriptionDropped: (sub, reason, _) =>
                {
+                   logger.LogError("Subscription dropped: {0}", reason);
                },
                filterOptions: new SubscriptionFilterOptions(EventStoreClientNS.EventTypeFilter.ExcludeSystemEvents()));
-        }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -166,7 +169,10 @@ namespace EMBC.ESS.Domain.Common.EventStore
             {
                 if (disposing)
                 {
-                    if (subscription != null) subscription.Dispose();
+                    foreach (var subscription in subscriptions)
+                    {
+                        subscription.Dispose();
+                    }
                 }
 
                 disposedValue = true;
@@ -184,10 +190,12 @@ namespace EMBC.ESS.Domain.Common.EventStore
     {
         private readonly IDictionary<Type, MethodInfo[]> eventHandlersMap;
         private readonly object handlerHost;
+        private readonly ILogger logger;
 
-        public EventStorePublisher(object handlerHost)
+        public EventStorePublisher(object handlerHost, ILogger logger)
         {
             this.handlerHost = handlerHost;
+            this.logger = logger;
             var eventHandlers = this.handlerHost.GetType().GetMethods()
                   .Where(mi => mi.Name.StartsWith("Handle") && mi.GetParameters().Length == 1 && typeof(Event).IsAssignableFrom(mi.GetParameters()[0].ParameterType));
 
@@ -200,14 +208,22 @@ namespace EMBC.ESS.Domain.Common.EventStore
             if (!eventHandlersMap.TryGetValue(eventType, out var handlers)) { return; }
             foreach (var handler in handlers)
             {
-                if (handler.ReturnType == typeof(Task) || handler.ReturnType == typeof(ValueTask))
+                try
                 {
-                    var result = (Task)handler.Invoke(handlerHost, new[] { evt });
-                    await result;
+                    if (handler.ReturnType == typeof(Task) || handler.ReturnType == typeof(ValueTask))
+                    {
+                        var result = (Task)handler.Invoke(handlerHost, new[] { evt });
+                        await result;
+                    }
+                    else
+                    {
+                        handler.Invoke(handlerHost, new[] { evt });
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    handler.Invoke(handlerHost, new[] { evt });
+                    logger.LogError(e, "Exception thrown in {0}.{1}", handler.DeclaringType.FullName, handler.Name);
+                    throw;
                 }
             }
         }
