@@ -67,8 +67,9 @@ namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
         public async Task HandleAsync(SupportsRequestReceived evt)
         {
             var profile = await repository.GetByKeyAsync(evt.RegistrantId);
-            profile.PendingRequests.Add(new SupportsRequestView
+            profile.PendingRequests.Add(new SupportsRequest
             {
+                RequestedOn = evt.Time,
                 ReferenceNumber = evt.ReferenceNumber,
                 SourceAddress = evt.SourceAddress,
                 PerliminaryNeedsAssessment = new NeedsAssessment
@@ -79,28 +80,32 @@ namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
                     Animals = evt.Animals.Select(a => new Animal { Type = a.Type, HasFoodSupplies = a.HasFoodSupplies, Quantity = a.Quantity }).ToArray(),
                     Members = evt.Members.Select(m => new Member { Name = m.Name, DateOfBirth = m.DateOfBirth }).ToArray()
                 },
+                Status = "Pending Review",
+                Registrants = new[] { profile }.ToList()
             });
             profile.Status = "Evacuated";
             await repository.SetAsync(evt.RegistrantId, profile);
         }
 
-        //public async Task HandleAsync(SupportsFileOpened evt)
-        //{
-        //    var profile = await repository.GetByKeyAsync(evt.ReferenceNumber);
-        //    profile.Files.Add(new SupportsFileView
-        //    {
-        //        ReferenceNumber = evt.ReferenceNumber,
-        //        SourceAddress = evt.SourceAddress,
-        //        PerliminaryNeedsAssessment = new NeedsAssessment
-        //        {
-        //            DateCompleted = evt.Time,
-        //            RequiresFood = evt.PerliminaryAssessment.RequiresFood,
-        //            MedicationRequirements = evt.PerliminaryAssessment.MedicationRequirements,
-        //            Animals = evt.PerliminaryAssessment.Animals.Select(a => new Animal { Type = a.Type, HasFoodSupplies = a.HasFoodSupplies, Quantity = a.Quantity }).ToArray(),
-        //            Members = evt.PerliminaryAssessment.Members.Select(m => new Member { Name = m.Name, DateOfBirth = m.DateOfBirth }).ToArray()
-        //        },
-        //    });
-        //    await repository.SetAsync(evt.ReferenceNumber, profile);
-        //}
+        public async Task HandleAsync(SupportsFileOpened evt)
+        {
+            var profile = await repository.GetByKeyAsync(evt.Registrants.First());
+            profile.Files.Add(new SupportsFile
+            {
+                CreatedOn = evt.Time,
+                Status = "Active",
+                ReferenceNumber = evt.ReferenceNumber,
+                SourceAddress = evt.SourceAddress,
+                PerliminaryNeedsAssessment = new NeedsAssessment
+                {
+                    DateCompleted = evt.Time,
+                    RequiresFood = evt.PerliminaryAssessment.RequiresFood,
+                    MedicationRequirements = evt.PerliminaryAssessment.MedicationRequirements,
+                    Animals = evt.PerliminaryAssessment.Animals.Select(a => new Animal { Type = a.Type, HasFoodSupplies = a.HasFoodSupplies, Quantity = a.Quantity }).ToArray(),
+                    Members = evt.PerliminaryAssessment.Members.Select(m => new Member { Name = m.Name, DateOfBirth = m.DateOfBirth }).ToArray()
+                },
+            });
+            await repository.SetAsync(evt.ReferenceNumber, profile);
+        }
     }
 }

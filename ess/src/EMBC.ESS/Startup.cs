@@ -1,6 +1,7 @@
 ﻿using EMBC.ESS.Domain.Common;
 using EMBC.ESS.Domain.Common.EventStore;
-using EMBC.ESS.Domain.ReadModels;
+using EMBC.ESS.Domain.ReadModels.RegistrantProfiles;
+using EMBC.ESS.Domain.ReadModels.SupportFiles;
 using EMBC.ESS.Domain.Registrants;
 using EMBC.ESS.Domain.Supports;
 using Microsoft.AspNetCore.Builder;
@@ -22,10 +23,11 @@ namespace EMBC.ESS
             services.AddESEventStore();
             services.AddInMemoryMediator();
             services.AddTransient<IRepository<Registration>, Repository<Registration>>();
-            services.AddTransient<IRepository<SupportsFile>, Repository<SupportsFile>>();
-            services.AddTransient<IRepository<SupportsRequest>, Repository<SupportsRequest>>();
+            services.AddTransient<IRepository<Domain.Supports.SupportsFile>, Repository<Domain.Supports.SupportsFile>>();
+            services.AddTransient<IRepository<Domain.Supports.SupportsRequest>, Repository<Domain.Supports.SupportsRequest>>();
             services.AddTransient<ISupportsFileFactory, SupportFileFactory>();
             services.AddSingleton<IReadModelRepository<RegistrantProfileView>, InMemoryReadModelRepository<RegistrantProfileView>>();
+            services.AddSingleton<IReadModelRepository<SupportsFileView>, InMemoryReadModelRepository<SupportsFileView>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

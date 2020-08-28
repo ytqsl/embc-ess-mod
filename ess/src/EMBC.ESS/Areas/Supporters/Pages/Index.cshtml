@@ -2,7 +2,7 @@
 @model IndexModel
 <h2>Profile search</h2>
 <section>
-    <a role="button" asp-page="Create">Create New Profile</a>
+    <a role="button" asp-page="RegistrantCreate">Create New Profile</a>
 </section>
 <section>
     <h4>Search by</h4>
@@ -52,7 +52,7 @@
                                 <td>@profile.DateOfBirth</td>
                                 <td>@profile.Address</td>
                                 <td>@profile.Status</td>
-                                <td><a asp-page="View" asp-route-id="@profile.Id">View</a></td>
+                                <td><a asp-page="RegistrantView" asp-route-id="@profile.Id">View</a></td>
                             </tr>
                         }
                     </tbody>

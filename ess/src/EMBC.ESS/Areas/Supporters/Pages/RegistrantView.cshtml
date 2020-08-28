@@ -1,0 +1,73 @@
+﻿@page "{id}"
+@model RegistrantViewModel
+
+<article>
+    <h1>Profile</h1>
+    <ul>
+        <li>Name: <span>@Html.DisplayFor(m => m.Profile.Name)</span></li>
+        <li>DoB: <span>@Html.DisplayFor(m => m.Profile.DateOfBirth)</span></li>
+        <li>Address: <span>@Html.DisplayFor(m => m.Profile.Address)</span></li>
+        <li>Status: <span>@Html.DisplayFor(m => m.Profile.Status)</span></li>
+    </ul>
+    <span>
+        <a asp-page="RegistrantEdit" asp-route-id="@Model.Profile.Id">Edit</a>
+    </span>
+    @if (Model.PendingRequests.Any())
+    {
+        <h3>Needs assessments</h3>
+        <section>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Reference Number</th>
+                        <th>From</th>
+                        <th>Reference Number</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in Model.PendingRequests)
+                    {
+                        <tr>
+                            <td>@request.ReferenceNumber</td>
+                            <td>@request.CreatedOn</td>
+                            <td>@request.From</td>
+                            <td>@request.Status</td>
+                            <td><a asp-page="NeedsAssessmentEdit" asp-route-ref="@request.ReferenceNumber">Review</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+    @if (Model.Files.Any())
+    {
+        <h3>Needs assessments</h3>
+        <section>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Reference Number</th>
+                        <th>From</th>
+                        <th>Reference Number</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in Model.Files)
+                    {
+                        <tr>
+                            <td>@file.ReferenceNumber</td>
+                            <td>@file.CreatedOn</td>
+                            <td>@file.From</td>
+                            <td>@file.Status</td>
+                            <td><a asp-page="NeedsAssessmentEdit" asp-route-id="@file.ReferenceNumber">View</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+</article>

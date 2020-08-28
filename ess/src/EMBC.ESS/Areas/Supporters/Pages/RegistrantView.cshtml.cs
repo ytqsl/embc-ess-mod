@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,10 +8,12 @@ using EMBC.ESS.Domain.ReadModels.RegistrantProfiles;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace EMBC.ESS.Areas.Evacuees.Pages
+namespace EMBC.ESS.Areas.Supporters.Pages
 {
-    public class ViewModel : PageModel
+    public class RegistrantViewModel : PageModel
     {
+        private readonly ICommandSender bus;
+
         public class ProfileViewModel
         {
             public string Id { get; set; }
@@ -21,23 +24,29 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
             [Display(Name = "Date of Birth")]
             public string DateOfBirth { get; set; }
 
-            [Display(Name = "Home Address")]
+            [Display(Name = "home Address")]
             public string Address { get; set; }
 
             public string Status { get; set; }
         }
 
-        public class ProfileSupportsFileView
+        public class SupportsRequestViewModel
         {
             public string ReferenceNumber { get; set; }
-            public string Status { get; set; }
-            public DateTime Date { get; set; }
             public string From { get; set; }
+            public DateTime CreatedOn { get; set; }
+            public string Status { get; set; }
         }
 
-        private readonly ICommandSender bus;
+        public class SupportsFileViewModel
+        {
+            public string ReferenceNumber { get; set; }
+            public string From { get; set; }
+            public DateTime CreatedOn { get; set; }
+            public string Status { get; set; }
+        }
 
-        public ViewModel(ICommandSender bus)
+        public RegistrantViewModel(ICommandSender bus)
         {
             this.bus = bus;
         }
@@ -46,45 +55,37 @@ namespace EMBC.ESS.Areas.Evacuees.Pages
         public ProfileViewModel Profile { get; set; }
 
         [ViewData]
-        public ProfileSupportsFileView[] ActiveFiles { get; set; }
+        public IEnumerable<SupportsRequestViewModel> PendingRequests { get; set; }
 
         [ViewData]
-        public ProfileSupportsFileView[] PastFiles { get; set; }
+        public IEnumerable<SupportsFileViewModel> Files { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
             var profile = await bus.SendAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = id });
-            if (profile == null) return NotFound();
             Profile = new ProfileViewModel
             {
-                Id = id,
+                Id = profile.Id.ToString(),
                 Address = profile.Address,
                 DateOfBirth = profile.DateOfBirth,
                 Name = profile.Name,
                 Status = profile.Status
             };
-            ActiveFiles = profile.PendingRequests.Select(r => new ProfileSupportsFileView
+            PendingRequests = profile.PendingRequests.Select(r => new SupportsRequestViewModel
             {
+                CreatedOn = r.RequestedOn,
+                From = r.SourceAddress,
                 ReferenceNumber = r.ReferenceNumber,
-                Status = r.Status,
-                Date = r.RequestedOn,
-                From = r.SourceAddress
-            })
-                .Union(profile.Files.Where(f => f.Status == "Active").Select(f => new ProfileSupportsFileView
-                {
-                    ReferenceNumber = f.ReferenceNumber,
-                    Status = f.Status,
-                    Date = f.CreatedOn,
-                    From = f.SourceAddress
-                })).ToArray();
+                Status = r.Status
+            });
 
-            PastFiles = profile.Files.Where(f => f.Status != "Active").Select(f => new ProfileSupportsFileView
+            Files = profile.Files.Select(f => new SupportsFileViewModel
             {
-                ReferenceNumber = f.ReferenceNumber,
+                CreatedOn = f.CreatedOn,
                 Status = f.Status,
-                Date = f.CreatedOn,
-                From = f.SourceAddress
-            }).ToArray();
+                ReferenceNumber = f.ReferenceNumber,
+                From = f.SourceAddress,
+            });
 
             return Page();
         }

@@ -7,7 +7,7 @@ namespace EMBC.ESS.Domain.Supports
     public class SupportsRequestReceived : Event
     {
         public SupportsRequestReceived(string referenceNumber, string registrantId, string sourceAddress, IEnumerable<Member> members, IEnumerable<Animal> animals,
-            bool? hasInsurance, string medicationRequirements, bool foodRequired, DateTime time)
+            bool hasInsurance, string medicationRequirements, bool foodRequired, DateTime time)
         {
             ReferenceNumber = referenceNumber;
             RegistrantId = registrantId;
@@ -26,7 +26,7 @@ namespace EMBC.ESS.Domain.Supports
         public string SourceAddress { get; }
         public IEnumerable<Member> Members { get; }
         public IEnumerable<Animal> Animals { get; }
-        public bool? HasInsurance { get; }
+        public bool HasInsurance { get; }
         public string MedicationRequirements { get; }
         public bool FoodRequired { get; }
         public DateTime Time { get; }
@@ -53,7 +53,7 @@ namespace EMBC.ESS.Domain.Supports
         {
             OpeningUserId = openingUserId;
             Time = time;
-            TaskId = taskId;
+            TaskNumber = taskId;
             SourceAddress = sourceAddress;
             Registrants = registrants;
             PerliminaryAssessment = perliminaryAssessment;
@@ -63,7 +63,7 @@ namespace EMBC.ESS.Domain.Supports
 
         public string OpeningUserId { get; }
         public DateTime Time { get; }
-        public string TaskId { get; }
+        public string TaskNumber { get; }
         public string SourceAddress { get; }
         public IEnumerable<string> Registrants { get; }
         public NeedsAssessment PerliminaryAssessment { get; }

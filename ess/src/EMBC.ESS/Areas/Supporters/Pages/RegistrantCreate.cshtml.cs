@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace EMBC.ESS.Areas.Supporters.Pages
 {
-    public class CreateModel : PageModel
+    public class RegistrantCreateModel : PageModel
     {
         private readonly ICommandSender bus;
 
@@ -23,7 +23,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
             public string Address { get; set; }
         }
 
-        public CreateModel(ICommandSender bus)
+        public RegistrantCreateModel(ICommandSender bus)
         {
             this.bus = bus;
         }
@@ -44,7 +44,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
             }
 
             var id = await bus.SendAsync(new RegisterNew(Data.Name, Data.Address, Data.DateOfBirth));
-            return RedirectToPage("./View", new { id });
+            return RedirectToPage("./RegistrantView", new { id });
         }
     }
 }

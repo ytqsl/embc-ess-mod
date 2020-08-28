@@ -2,8 +2,8 @@
 @model ViewModel
 
 <article>
+    <h2>Profile</h2>
     <section>
-        <h2>Profile</h2>
         <ul>
             <li>Name: <span>@Html.DisplayFor(m => m.Profile.Name)</span></li>
             <li>DoB: <span>@Html.DisplayFor(m => m.Profile.DateOfBirth)</span></li>
@@ -13,5 +13,49 @@
     </section>
     <section>
         Evacuated? click&nbsp;<a asp-page="RequestSupports" asp-route-id="@Model.Profile.Id">here</a>&nbsp;to request supports
+    </section>
+    <h3>Active Evacuations</h3>
+    <section>
+        <table>
+            <thead>
+                <tr>
+                    <th>From</th>
+                    <th>Reference Number</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var file in Model.ActiveFiles)
+                {
+                    <tr>
+                        <td>@file.From</td>
+                        <td>@file.ReferenceNumber</td>
+                        <td>@file.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+    <h3>Past Evacuations</h3>
+    <section>
+        <table>
+            <thead>
+                <tr>
+                    <th>Reference Number</th>
+                    <th>Date</th>
+                    <th>From</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var file in Model.PastFiles)
+                {
+                    <tr>
+                        <td>@file.ReferenceNumber</td>
+                        <td>@file.Date</td>
+                        <td>@file.From</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </section>
 </article>

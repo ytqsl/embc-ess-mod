@@ -55,7 +55,7 @@ namespace EMBC.ESS.Domain.Registrants
 
         public Registration(string name, string address, string dateOfBirth)
         {
-            ApplyChange(new RegistrantCreated(Guid.NewGuid().ToString(), name, address, string.Empty, dateOfBirth));
+            ApplyChange(new RegistrantCreated(Guid.NewGuid().ToString("N"), name, address, string.Empty, dateOfBirth));
             ApplyChange(new RegistrantIdentifierAdded(Id, "date_of_birth", dateOfBirth));
         }
 

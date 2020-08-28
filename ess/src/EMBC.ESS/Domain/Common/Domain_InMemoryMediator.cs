@@ -67,7 +67,10 @@ namespace EMBC.ESS.Domain.Common
         public async Task<TResponse> SendAsync<TResponse>(ICommand<TResponse> command)
         {
             var commandType = command.GetType();
-            if (!commandHandlersMap.TryGetValue(commandType, out var handler)) { return default; }
+            if (!commandHandlersMap.TryGetValue(commandType, out var handler))
+            {
+                throw new InvalidOperationException($"No handler found for command '{commandType.FullName}'");
+            }
             var handlerHost = serviceProvider.GetRequiredService(handler.DeclaringType);
 
             if (handler.ReturnType.BaseType == typeof(Task) || handler.ReturnType.BaseType == typeof(ValueTask))

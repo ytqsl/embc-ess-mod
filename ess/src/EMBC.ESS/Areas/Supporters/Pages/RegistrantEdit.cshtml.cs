@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace EMBC.ESS.Areas.Supporters.Pages
 {
-    public class EditModel : PageModel
+    public class RegistrantEditModel : PageModel
     {
         private readonly ICommandSender bus;
 
@@ -28,7 +28,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
             public string Address { get; set; }
         }
 
-        public EditModel(ICommandSender bus)
+        public RegistrantEditModel(ICommandSender bus)
         {
             this.bus = bus;
         }
@@ -58,7 +58,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
             }
 
             await bus.SendAsync(new UpdateDetails(Data.Id, Data.Name, Data.Address));
-            return RedirectToPage("./View", new { Data.Id });
+            return RedirectToPage("./RegistrantView", new { Data.Id });
         }
     }
 }

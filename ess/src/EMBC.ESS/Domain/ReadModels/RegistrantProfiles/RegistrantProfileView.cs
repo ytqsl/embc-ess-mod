@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace EMBC.ESS.Domain.ReadModels
+namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
 {
     public class RegistrantProfileView
     {
@@ -12,23 +12,28 @@ namespace EMBC.ESS.Domain.ReadModels
         public string DateOfBirth { get; set; }
         public DateTime RegisteredOn { get; set; }
         public DateTime LastUpdated { get; set; }
-        public List<SupportsFileView> Files { get; set; } = new List<SupportsFileView>();
-        public List<SupportsRequestView> PendingRequests { get; set; } = new List<SupportsRequestView>();
+        public List<SupportsFile> Files { get; set; } = new List<SupportsFile>();
+        public List<SupportsRequest> PendingRequests { get; set; } = new List<SupportsRequest>();
         public string Status { get; set; }
     }
 
-    public class SupportsFileView
+    public class SupportsFile
     {
         public string ReferenceNumber { get; set; }
         public string SourceAddress { get; set; }
         public NeedsAssessment PerliminaryNeedsAssessment { get; set; }
+        public string Status { get; set; }
+        public DateTime CreatedOn { get; set; }
     }
 
-    public class SupportsRequestView
+    public class SupportsRequest
     {
         public string ReferenceNumber { get; set; }
         public string SourceAddress { get; set; }
         public NeedsAssessment PerliminaryNeedsAssessment { get; set; }
+        public string Status { get; set; }
+        public DateTime RequestedOn { get; set; }
+        public List<RegistrantProfileView> Registrants { get; set; }
     }
 
     public class Member

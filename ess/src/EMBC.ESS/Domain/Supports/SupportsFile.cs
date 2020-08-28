@@ -52,11 +52,11 @@ namespace EMBC.ESS.Domain.Supports
         public IEnumerable<Member> Members => members;
         public IEnumerable<Animal> Animals => animals;
 
-        public bool? HasInsurance { get; }
+        public bool HasInsurance { get; }
         public string MedicationRequirements { get; }
         public bool RequiresFood { get; }
 
-        public NeedsAssessment(bool? hasInsurance, string medicationRequirements, bool requiresFood)
+        public NeedsAssessment(bool hasInsurance, string medicationRequirements, bool requiresFood)
         {
             HasInsurance = hasInsurance;
             MedicationRequirements = medicationRequirements;

@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
-using EMBC.ESS.Domain.ReadModels.RegistrantProfiles;
 
-namespace EMBC.ESS.Domain.ReadModels
+namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
 {
     public class QueriesHandler
     {
@@ -34,7 +33,7 @@ namespace EMBC.ESS.Domain.ReadModels
             return await repository.GetAsync(filter).ToArrayAsync();
         }
 
-        public async Task<IEnumerable<RegistrantProfileView>> Handle(RegistrantProfileBySuppoerFileReferenceNumberQuery query)
+        public async Task<IEnumerable<RegistrantProfileView>> Handle(RegistrantProfileBySupportFileReferenceNumberQuery query)
         {
             return await repository.GetAsync(p => p.Files.Any(f => f.ReferenceNumber == query.ReferenceNumber)).ToArrayAsync();
         }

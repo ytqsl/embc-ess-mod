@@ -15,7 +15,7 @@ namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
         public string DateOfBirth { get; set; }
     }
 
-    public class RegistrantProfileBySuppoerFileReferenceNumberQuery : ICommand<IEnumerable<RegistrantProfileView>>
+    public class RegistrantProfileBySupportFileReferenceNumberQuery : ICommand<IEnumerable<RegistrantProfileView>>
     {
         public string ReferenceNumber { get; set; }
     }
