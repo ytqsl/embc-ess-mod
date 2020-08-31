@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
 
 namespace EMBC.ESS.Domain.Supports
@@ -30,17 +29,20 @@ namespace EMBC.ESS.Domain.Supports
             return newRequest.Id;
         }
 
-        public async Task<string> Handle(OpenSupportsFile cmd)
+        public async Task<string> Handle(CompleteNeedsAssessment cmd)
         {
-            var newFile = await supportsFileFactory.CreateAsync(cmd);
+            var supportsFile = await supportsFilesRepository.GetByIdAsync(cmd.SupportFileReferenceNumber);
+            if (supportsFile == null)
+            {
+                supportsFile = await supportsFileFactory.CreateAsync(cmd);
+            }
 
-            if (!string.IsNullOrEmpty(cmd.RecoveryPlanNote)) { newFile.AddNote(cmd.UserId, NoteTypes.Recovery, cmd.RecoveryPlanNote, DateTime.Now); }
-            if (!string.IsNullOrEmpty(cmd.AffectOnRegistrantNote)) { newFile.AddNote(cmd.UserId, NoteTypes.Affect, cmd.AffectOnRegistrantNote, DateTime.Now); }
-            if (!string.IsNullOrEmpty(cmd.ReferencesNote)) { newFile.AddNote(cmd.UserId, NoteTypes.Reference, cmd.ReferencesNote, DateTime.Now); }
+            var needsAssessment = NeedsAssessment.FromCommand(cmd);
+            supportsFile.CompleteNeedsAssessment(cmd.UserId, cmd.TaskId, cmd.Time, needsAssessment);
 
-            await supportsFilesRepository.SaveAsync(newFile);
+            await supportsFilesRepository.SaveAsync(supportsFile);
 
-            return newFile.Id;
+            return supportsFile.Id;
         }
     }
 }

@@ -1,0 +1,1 @@
+wt new-tab -d .\source\Repos\QIL\embc-ess-mod\ dotnet watch -p ess\src\EMBC.ESS\ run `; sp -d .\source\Repos\QIL\embc-ess-mod\ess\ docker-compose up

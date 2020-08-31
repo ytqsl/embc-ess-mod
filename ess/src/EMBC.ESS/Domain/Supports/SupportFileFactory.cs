@@ -1,12 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using EMBC.ESS.Domain.Common;
 
 namespace EMBC.ESS.Domain.Supports
 {
     public interface ISupportsFileFactory
     {
-        Task<SupportsFile> CreateAsync(OpenSupportsFile cmd);
+        Task<SupportsFile> CreateAsync(CompleteNeedsAssessment cmd);
     }
 
     public class SupportFileFactory : ISupportsFileFactory
@@ -18,16 +17,15 @@ namespace EMBC.ESS.Domain.Supports
             this.sequenceNumbersProvider = sequenceNumbersProvider;
         }
 
-        public async Task<SupportsFile> CreateAsync(OpenSupportsFile cmd)
+        public async Task<SupportsFile> CreateAsync(CompleteNeedsAssessment cmd)
         {
-            //TODO: verify task is active
             var nextSequence = await sequenceNumbersProvider.NextAsync<SupportsFile>();
-            var perliminaryAssessment = new NeedsAssessment(cmd.HasInsurance, cmd.MedicationRequirements, cmd.FoodRequired);
-            foreach (var animal in cmd.Animals) { perliminaryAssessment.AddAnimal(animal.Type, animal.Quantity, animal.HasFoodSupplies); }
-            foreach (var member in cmd.Members) { perliminaryAssessment.AddMember(member.Name, member.DateOfBirth); }
 
-            var newFile = new SupportsFile(GetSupportFileReferenceNumber(nextSequence), cmd.UserId, cmd.TaskId, DateTime.Now, cmd.SourceAddress,
-                cmd.RegistrantIds, perliminaryAssessment, cmd.SupportsRequestReferenceNumber);
+            var newFile = new SupportsFile(GetSupportFileReferenceNumber(nextSequence), cmd.UserId, cmd.TaskId, cmd.Time, cmd.RegistrantId, cmd.SourceAddress);
+            foreach (var registrant in cmd.RegistrantIds)
+            {
+                newFile.AssignRegistrant(new Registrant(registrant));
+            }
             return newFile;
         }
 

@@ -1,7 +1,7 @@
 ﻿@page "{ref}"
 @model NeedsAssessmentEditModel
 <h1>Needs Assessment Review</h1>
-<<h2>Profile</h2>
+<h2>Profile</h2>
 <ul>
     <li>Name: <span>@Html.DisplayFor(m => m.Data.RegistrantName)</span></li>
     <li>Home Address: <span>@Html.DisplayFor(m => m.Data.RegistrantHomeAddress)</span></li>
@@ -11,6 +11,7 @@
 <hr />
 <form asp-antiforgery="true" method="post">
     <p asp-validation-summary="ModelOnly"></p>
+    <input asp-for="Data.RegistrantId" type="hidden" />
     <input asp-for="Data.ReferenceNumber" type="hidden" />
     <p>
         <label asp-for="Data.SourceAddress"></label><br />
@@ -51,6 +52,36 @@
         <label asp-for="Data.Animal1HasFoodSupplies"></label><br />
         <input asp-for="Data.Animal1HasFoodSupplies" />
         <span asp-validation-for="Data.Animal1HasFoodSupplies"></span>
+    </p>
+    @if (Model.Data.PreviousNotes.Any())
+    {
+        <p>
+            <label>Previous notes</label>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Content</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var note in Model.Data.PreviousNotes)
+                    {
+                        <tr>
+                            <td>@note.when</td>
+                            <td>@note.byUser</td>
+                            <td>@note.note</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </p>
+    }
+    <p>
+        <label asp-for="Data.Note"></label><br />
+        <textarea asp-for="Data.Note"></textarea>
+        <span asp-validation-for="Data.Note"></span>
     </p>
     <input type="submit" value="Finish" />
 </form>

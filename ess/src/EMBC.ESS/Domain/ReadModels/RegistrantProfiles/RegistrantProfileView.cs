@@ -21,7 +21,6 @@ namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
     {
         public string ReferenceNumber { get; set; }
         public string SourceAddress { get; set; }
-        public NeedsAssessment PerliminaryNeedsAssessment { get; set; }
         public string Status { get; set; }
         public DateTime CreatedOn { get; set; }
     }
@@ -30,10 +29,8 @@ namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
     {
         public string ReferenceNumber { get; set; }
         public string SourceAddress { get; set; }
-        public NeedsAssessment PerliminaryNeedsAssessment { get; set; }
         public string Status { get; set; }
         public DateTime RequestedOn { get; set; }
-        public List<RegistrantProfileView> Registrants { get; set; }
     }
 
     public class Member
@@ -47,15 +44,5 @@ namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
         public string Type { get; set; }
         public int Quantity { get; set; }
         public bool HasFoodSupplies { get; set; }
-    }
-
-    public class NeedsAssessment
-    {
-        public DateTime DateCompleted { get; set; }
-        public bool RequiresFood { get; set; }
-        public string MedicationRequirements { get; set; }
-        public IEnumerable<Member> Members { get; set; }
-
-        public IEnumerable<Animal> Animals { get; set; }
     }
 }

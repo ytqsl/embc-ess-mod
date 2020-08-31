@@ -43,11 +43,12 @@ namespace EMBC.ESS.Domain.Supports
         }
     }
 
-    public class OpenSupportsFile : ICommand
+    public class CompleteNeedsAssessment : ICommand
     {
-        public OpenSupportsFile(string userId, DateTime time, string taskId, string supportsRequestReferenceNumber, IEnumerable<string> registrantIds, string sourceAddress, IEnumerable<Member> members, IEnumerable<Animal> animals,
+        public CompleteNeedsAssessment(string supportFileReferenceNumber, string userId, DateTime time, string taskId, string supportsRequestReferenceNumber, IEnumerable<string> registrantIds, string sourceAddress, IEnumerable<Member> members, IEnumerable<Animal> animals,
             bool hasInsurance, string medicationRequirements, bool foodRequired, string recoveryPlanNote, string affectOnRegistrantNote, string referencesNote)
         {
+            SupportFileReferenceNumber = supportFileReferenceNumber;
             UserId = userId;
             Time = time;
             TaskId = taskId;
@@ -64,6 +65,7 @@ namespace EMBC.ESS.Domain.Supports
             ReferencesNote = referencesNote;
         }
 
+        public string SupportFileReferenceNumber { get; }
         public string UserId { get; }
         public DateTime Time { get; }
         public string TaskId { get; }

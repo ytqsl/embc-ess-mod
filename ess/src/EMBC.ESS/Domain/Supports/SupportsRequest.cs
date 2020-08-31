@@ -15,12 +15,12 @@ namespace EMBC.ESS.Domain.Supports
         {
             var newRequest = new SupportsRequest();
             newRequest.ApplyChange(new SupportsRequestReceived(GetSupportRequestReferenceNumber(nextSequence),
+                DateTime.Now
+,
                 cmd.Registrant,
                 cmd.SourceAddress,
-                cmd.Members.Select(m => new SupportsRequestReceived.Member { Name = m.Name, DateOfBirth = m.DateOfBirth }),
-                cmd.Animals.Select(a => new SupportsRequestReceived.Animal { Type = a.Type, HasFoodSupplies = a.HasFoodSupplies, Quantity = a.Quantity }),
-                cmd.HasInsurance, cmd.MedicationRequirements, cmd.FoodRequired, DateTime.Now
-                ));
+                cmd.HasInsurance,
+                cmd.MedicationRequirements, cmd.FoodRequired, cmd.Members.Select(m => new SupportsRequestReceived.Member { Name = m.Name, DateOfBirth = m.DateOfBirth }), cmd.Animals.Select(a => new SupportsRequestReceived.Animal { Type = a.Type, HasFoodSupplies = a.HasFoodSupplies, Quantity = a.Quantity })));
 
             return newRequest;
         }
