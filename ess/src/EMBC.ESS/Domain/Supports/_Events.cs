@@ -48,13 +48,14 @@ namespace EMBC.ESS.Domain.Supports
 
     public class SupportsFileOpened : Event
     {
-        public SupportsFileOpened(string referenceNumber, string byUserId, DateTime time, string taskId, string registrantId, string sourceAddress)
+        public SupportsFileOpened(string referenceNumber, string byUserId, DateTime time, string taskId, string registrantId, string sourceAddress, string referencedSupportRequestReferenceNumber)
         {
             OpeningUserId = byUserId;
             Time = time;
             TaskNumber = taskId;
             RegistrantId = registrantId;
             SourceAddress = sourceAddress;
+            ReferencedSupportRequestReferenceNumber = referencedSupportRequestReferenceNumber;
             ReferenceNumber = referenceNumber;
         }
 
@@ -63,19 +64,20 @@ namespace EMBC.ESS.Domain.Supports
         public string TaskNumber { get; }
         public string RegistrantId { get; }
         public string SourceAddress { get; }
+        public string ReferencedSupportRequestReferenceNumber { get; }
         public string ReferenceNumber { get; }
     }
 
     public class RegistrantAddedToSupportsFile : Event
     {
-        public RegistrantAddedToSupportsFile(string referenceNumber, string id)
+        public RegistrantAddedToSupportsFile(string referenceNumber, string registrantId)
         {
             ReferenceNumber = referenceNumber;
-            Id = id;
+            RegistrantId = registrantId;
         }
 
         public string ReferenceNumber { get; }
-        public string Id { get; }
+        public string RegistrantId { get; }
     }
 
     public class NeedsAssessmentCompleted : Event
@@ -108,7 +110,6 @@ namespace EMBC.ESS.Domain.Supports
         public DateTime Time { get; }
         public string ReferenceNumber { get; }
 
-        public IEnumerable<string> Registrants { get; }
         public IEnumerable<Member> Members { get; }
         public IEnumerable<Animal> Animals { get; }
         public bool HasInsurance { get; }

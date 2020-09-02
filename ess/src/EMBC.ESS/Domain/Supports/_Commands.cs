@@ -45,7 +45,7 @@ namespace EMBC.ESS.Domain.Supports
 
     public class CompleteNeedsAssessment : ICommand
     {
-        public CompleteNeedsAssessment(string supportFileReferenceNumber, string userId, DateTime time, string taskId, string supportsRequestReferenceNumber, IEnumerable<string> registrantIds, string sourceAddress, IEnumerable<Member> members, IEnumerable<Animal> animals,
+        public CompleteNeedsAssessment(string supportFileReferenceNumber, string userId, DateTime time, string taskId, string registrantId, string supportsRequestReferenceNumber, string sourceAddress, IEnumerable<Member> members, IEnumerable<Animal> animals,
             bool hasInsurance, string medicationRequirements, bool foodRequired, string recoveryPlanNote, string affectOnRegistrantNote, string referencesNote)
         {
             SupportFileReferenceNumber = supportFileReferenceNumber;
@@ -53,7 +53,6 @@ namespace EMBC.ESS.Domain.Supports
             Time = time;
             TaskId = taskId;
             SupportsRequestReferenceNumber = supportsRequestReferenceNumber;
-            RegistrantIds = registrantIds;
             SourceAddress = sourceAddress;
             Members = members;
             Animals = animals;
@@ -63,6 +62,7 @@ namespace EMBC.ESS.Domain.Supports
             RecoveryPlanNote = recoveryPlanNote;
             AffectOnRegistrantNote = affectOnRegistrantNote;
             ReferencesNote = referencesNote;
+            RegistrantId = registrantId;
         }
 
         public string SupportFileReferenceNumber { get; }
@@ -70,7 +70,6 @@ namespace EMBC.ESS.Domain.Supports
         public DateTime Time { get; }
         public string TaskId { get; }
         public string SupportsRequestReferenceNumber { get; }
-        public IEnumerable<string> RegistrantIds { get; }
         public string RegistrantId { get; }
         public IEnumerable<string> OtherRegistrants { get; }
         public string SourceAddress { get; }

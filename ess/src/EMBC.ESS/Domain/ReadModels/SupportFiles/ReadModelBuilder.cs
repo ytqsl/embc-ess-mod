@@ -25,7 +25,7 @@ namespace EMBC.ESS.Domain.ReadModels.SupportFiles
                 Status = "Pending",
                 UpdatedOn = evt.Time,
                 Registrants = new[] { evt.RegistrantId },
-                NeedsAssessments = new[]{
+                NeedsAssessments = new[] {
                     new NeedsAssessment
                     {
                         ByUser = null,
@@ -45,6 +45,7 @@ namespace EMBC.ESS.Domain.ReadModels.SupportFiles
 
         public async Task HandleAsync(SupportsFileOpened evt)
         {
+            var supportRequest = await repository.GetByKeyAsync(evt.ReferenceNumber);
             var file = new SupportsFileView
             {
                 Status = "Open",
@@ -52,6 +53,9 @@ namespace EMBC.ESS.Domain.ReadModels.SupportFiles
                 SourceAddress = evt.SourceAddress,
                 CreatedOn = evt.Time,
                 UpdatedOn = evt.Time,
+                NeedsAssessments = supportRequest == null
+                    ? Array.Empty<NeedsAssessment>()
+                    : supportRequest.NeedsAssessments.ToArray()
             };
 
             await repository.SetAsync(evt.ReferenceNumber, file);
@@ -60,7 +64,6 @@ namespace EMBC.ESS.Domain.ReadModels.SupportFiles
         public async Task HandleAsync(NeedsAssessmentCompleted evt)
         {
             var file = await repository.GetByKeyAsync(evt.ReferenceNumber);
-            file.Registrants = evt.Registrants.ToArray();
             file.Status = "Reviewed";
             file.NeedsAssessments = file.NeedsAssessments.Append(new NeedsAssessment
             {
@@ -74,6 +77,14 @@ namespace EMBC.ESS.Domain.ReadModels.SupportFiles
                 HasInsurance = evt.HasInsurance,
                 Notes = evt.Notes.Select(n => new Note { Type = n.Type, Content = n.Content })
             });
+            await repository.SetAsync(evt.ReferenceNumber, file);
+        }
+
+        public async Task HandleAsync(RegistrantAddedToSupportsFile evt)
+        {
+            var file = await repository.GetByKeyAsync(evt.ReferenceNumber);
+            file.Registrants.Append(evt.RegistrantId);
+            await repository.SetAsync(evt.ReferenceNumber, file);
         }
     }
 }

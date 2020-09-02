@@ -30,14 +30,18 @@ namespace EMBC.ESS.Domain.Supports
         }
 
         public async Task<string> Handle(CompleteNeedsAssessment cmd)
-        {
-            var supportsFile = await supportsFilesRepository.GetByIdAsync(cmd.SupportFileReferenceNumber);
-            if (supportsFile == null)
+        {            
+            SupportsFile supportsFile;
+            try
+            {
+                supportsFile = await supportsFilesRepository.GetByIdAsync(cmd.SupportFileReferenceNumber);
+            }
+            catch (StreamNotFoundException)
             {
                 supportsFile = await supportsFileFactory.CreateAsync(cmd);
             }
-
-            var needsAssessment = NeedsAssessment.FromCommand(cmd);
+            supportsFile.AssignRegistrant(new Registrant(cmd.RegistrantId));
+            var needsAssessment = NeedsAssessment.FromCommand(cmd);            
             supportsFile.CompleteNeedsAssessment(cmd.UserId, cmd.TaskId, cmd.Time, needsAssessment);
 
             await supportsFilesRepository.SaveAsync(supportsFile);

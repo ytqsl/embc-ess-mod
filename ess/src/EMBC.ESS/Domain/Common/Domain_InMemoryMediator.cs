@@ -47,7 +47,8 @@ namespace EMBC.ESS.Domain.Common
 
             try
             {
-                if (handler.ReturnType == typeof(Task) || handler.ReturnType == typeof(ValueTask))
+                if (handler.ReturnType == typeof(Task) || handler.ReturnType == typeof(ValueTask) ||
+                    handler.ReturnType.BaseType == typeof(Task) || handler.ReturnType.BaseType == typeof(ValueTask))
                 {
                     var result = (Task)handler.Invoke(handlerHost, new[] { command });
                     await result;

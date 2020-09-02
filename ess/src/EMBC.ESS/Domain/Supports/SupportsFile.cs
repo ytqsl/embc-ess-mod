@@ -18,14 +18,22 @@ namespace EMBC.ESS.Domain.Supports
 
         private void Apply(RegistrantAddedToSupportsFile evt)
         {
-            registrants.Add(evt.Id);
+            registrants.Add(evt.RegistrantId);
+        }
+
+        private void Apply(NeedsAssessmentCompleted evt)
+        {
         }
 
 #pragma warning restore IDE0051 // Remove unused private members
 
-        public SupportsFile(string referenceNumber, string userId, string taskId, DateTime time, string registrantId, string sourceAddress)
+        public SupportsFile()
         {
-            ApplyChange(new SupportsFileOpened(referenceNumber, userId, time, taskId, registrantId, sourceAddress));
+        }
+
+        public SupportsFile(string referenceNumber, string userId, string taskId, DateTime time, string registrantId, string sourceAddress, bool isSelfRegistration)
+        {
+            ApplyChange(new SupportsFileOpened(referenceNumber, userId, time, taskId, registrantId, sourceAddress, isSelfRegistration ? referenceNumber : null));
         }
 
         public void AssignRegistrant(Registrant registrant)

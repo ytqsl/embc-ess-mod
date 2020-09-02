@@ -19,13 +19,13 @@ namespace EMBC.ESS.Domain.Supports
 
         public async Task<SupportsFile> CreateAsync(CompleteNeedsAssessment cmd)
         {
-            var nextSequence = await sequenceNumbersProvider.NextAsync<SupportsFile>();
+            var isSelfRegistration = cmd.SupportsRequestReferenceNumber != null;
+            var referenceNumber = !isSelfRegistration
+                ? GetSupportFileReferenceNumber(await sequenceNumbersProvider.NextAsync<SupportsFile>())
+                : cmd.SupportsRequestReferenceNumber;
 
-            var newFile = new SupportsFile(GetSupportFileReferenceNumber(nextSequence), cmd.UserId, cmd.TaskId, cmd.Time, cmd.RegistrantId, cmd.SourceAddress);
-            foreach (var registrant in cmd.RegistrantIds)
-            {
-                newFile.AssignRegistrant(new Registrant(registrant));
-            }
+            var newFile = new SupportsFile(referenceNumber, cmd.UserId, cmd.TaskId, cmd.Time, cmd.RegistrantId, cmd.SourceAddress, isSelfRegistration);
+
             return newFile;
         }
 

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using EventStoreClient = EventStore.Client;
 
 namespace EMBC.ESS.Domain.Common
 {
@@ -78,12 +79,6 @@ namespace EMBC.ESS.Domain.Common
         Task<TItem> GetByIdAsync(string id);
     }
 
-    //public interface IReadModelRepository<TItem> where TItem : AggregateRoot
-    //{
-    //    IAsyncEnumerable<TItem> GetAsync(Func<TItem, bool> filter = null);
-
-    //    Task<TItem> GetByIdAsync(string id);
-    //}
     public interface IReadModelRepository<TReadModel>
     {
         Task SetAsync(string key, TReadModel item);
@@ -196,8 +191,15 @@ namespace EMBC.ESS.Domain.Common
         public async Task<TItem> GetByIdAsync(string id)
         {
             var aggregate = await factory();
-            var events = _storage.GetEventsAsync(GetStreamName(id));
-            await aggregate.LoadsFromHistory(events);
+            try
+            {
+                var events = _storage.GetEventsAsync(GetStreamName(id));
+                await aggregate.LoadsFromHistory(events);
+            }
+            catch (EventStoreClient.StreamNotFoundException)
+            {
+                throw new StreamNotFoundException(id);
+            }
             return aggregate;
         }
 

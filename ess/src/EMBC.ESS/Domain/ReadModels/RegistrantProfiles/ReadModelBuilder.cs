@@ -87,7 +87,12 @@ namespace EMBC.ESS.Domain.ReadModels.RegistrantProfiles
                 SourceAddress = evt.SourceAddress,
                 Status = "Active",
             });
-            await repository.SetAsync(evt.ReferenceNumber, profile);
+
+            if (evt.ReferencedSupportRequestReferenceNumber != null)
+            {
+                profile.PendingRequests.Remove(profile.PendingRequests.Find(r => r.ReferenceNumber == evt.ReferencedSupportRequestReferenceNumber));
+            }
+            await repository.SetAsync(evt.RegistrantId, profile);
         }
     }
 }

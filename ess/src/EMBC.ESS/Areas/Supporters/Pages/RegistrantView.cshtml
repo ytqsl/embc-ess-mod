@@ -63,7 +63,7 @@
                             <td>@file.CreatedOn</td>
                             <td>@file.From</td>
                             <td>@file.Status</td>
-                            <td><a asp-page="NeedsAssessmentEdit" asp-route-id="@file.ReferenceNumber">View</a></td>
+                            <td><a asp-page="NeedsAssessmentEdit" asp-route-ref="@file.ReferenceNumber" asp-route-regid="@Model.Profile.Id">View</a></td>
                         </tr>
                     }
                 </tbody>

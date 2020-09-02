@@ -23,15 +23,19 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 
         public class SupportRequestView
         {
+            [Required]
             public string ReferenceNumber { get; set; }
 
-            [Display(Name = "Name"), Required]
+            [Required]
+            public string RegistrantId { get; set; }
+
+            [Display(Name = "Name")]
             public string RegistrantName { get; set; }
 
-            [Display(Name = "Home address"), Required]
+            [Display(Name = "Home address")]
             public string RegistrantHomeAddress { get; set; }
 
-            [Display(Name = "Evacuated from"), Required]
+            [Display(Name = "Evacuated from")]
             public string SourceAddress { get; set; }
 
             [Display(Name = "Household member name")]
@@ -65,26 +69,24 @@ namespace EMBC.ESS.Areas.Supporters.Pages
 
             [Display(Name = "Assessment")]
             public string Note { get; set; }
-
-            public string RegistrantId { get; set; }
         }
 
         [BindProperty]
         public SupportRequestView Data { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string @ref)
+        public async Task<IActionResult> OnGetAsync(string @ref, string regId)
         {
-            var request = await bus.SendAsync(new SupportsFileByReferenceNumberQuery { ReferenceNumber = @ref });
-            if (request == null) return NotFound();
-            var profile = await bus.SendAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = request.Registrants.First() });
-            var lastNeedsAssessment = request.NeedsAssessments.First();
+            var file = await bus.SendAsync(new SupportsFileByReferenceNumberQuery { ReferenceNumber = @ref });
+            if (file == null) return NotFound();
+            var profile = await bus.SendAsync(new RegistrantProfileByRegistrantIdQuery { RegistrantId = regId });
+            var lastNeedsAssessment = file.NeedsAssessments.First();
             Data = new SupportRequestView
             {
                 ReferenceNumber = @ref,
                 RegistrantName = profile.Name,
                 RegistrantId = profile.Id,
                 RegistrantHomeAddress = profile.Address,
-                SourceAddress = request.SourceAddress,
+                SourceAddress = file.SourceAddress,
                 Member1Name = lastNeedsAssessment.Members.FirstOrDefault()?.Name,
                 Member1DateOfBirth = lastNeedsAssessment.Members.FirstOrDefault()?.DateOfBirth,
                 Animal1Type = lastNeedsAssessment.Animals.FirstOrDefault()?.Type,
@@ -93,9 +95,9 @@ namespace EMBC.ESS.Areas.Supporters.Pages
                 FoodRequired = lastNeedsAssessment.RequiresFood,
                 HasInsurance = lastNeedsAssessment.HasInsurance,
                 MedicationRequirements = lastNeedsAssessment.MedicationRequirements,
-                Status = request.Status,
-                RequestedOn = request.CreatedOn,
-                PreviousNotes = request.NeedsAssessments
+                Status = file.Status,
+                RequestedOn = file.CreatedOn,
+                PreviousNotes = file.NeedsAssessments
                     .Where(na => na.Notes.Any())
                     .Select(na => (na.DateCompleted, na.ByUser, note: na.Notes.First().Content))
             };
@@ -118,7 +120,7 @@ namespace EMBC.ESS.Areas.Supporters.Pages
                 ? Array.Empty<CompleteNeedsAssessment.Animal>()
                 : new[] { new CompleteNeedsAssessment.Animal { Type = Data.Animal1Type, Quantity = Data.Animal1Quantity.Value, HasFoodSupplies = Data.Animal1HasFoodSupplies.Value } };
 
-            await bus.SendAsync(new CompleteNeedsAssessment(Data.ReferenceNumber, "a user", DateTime.Now, "a task", Data.ReferenceNumber, new[] { Data.RegistrantId }, Data.SourceAddress,
+            await bus.SendAsync(new CompleteNeedsAssessment(Data.ReferenceNumber, "a user", DateTime.Now, "a task", Data.RegistrantId, Data.ReferenceNumber, Data.SourceAddress,
                 members, animals,
                 Data.HasInsurance, Data.MedicationRequirements, Data.FoodRequired, null, null, Data.Note));
 
