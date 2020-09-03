@@ -10,7 +10,8 @@
         <li>Status: <span>@Html.DisplayFor(m => m.Profile.Status)</span></li>
     </ul>
     <span>
-        <a asp-page="RegistrantEdit" asp-route-id="@Model.Profile.Id">Edit</a>
+        <a asp-page="RegistrantEdit" asp-route-id="@Model.Profile.Id">Edit</a>&nbsp;|&nbsp;
+        <a asp-page="NeedsAssessmentEdit" asp-route-regid="@Model.Profile.Id">Register as evacuee</a>
     </span>
     @if (Model.PendingRequests.Any())
     {
@@ -34,7 +35,7 @@
                             <td>@request.CreatedOn</td>
                             <td>@request.From</td>
                             <td>@request.Status</td>
-                            <td><a asp-page="NeedsAssessmentEdit" asp-route-ref="@request.ReferenceNumber">Review</a></td>
+                            <td><a asp-page="NeedsAssessmentEdit" asp-route-ref="@request.ReferenceNumber" asp-route-regid="@Model.Profile.Id">Review</a></td>
                         </tr>
                     }
                 </tbody>
