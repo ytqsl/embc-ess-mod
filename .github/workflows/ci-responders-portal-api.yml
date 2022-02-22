@@ -4,8 +4,10 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
     paths:
-      - "src/*.Responders.API/**"
+      - "src/**"
+      - "!src/EMBC.ESS.*"
       - "src/EMBC.ESS.Shared.Contracts/**"
+      - "!src/build/**"
       - "src/build/Responders/*API*"
       - ".github/workflows/ci-responders-portal-api.yml"
 

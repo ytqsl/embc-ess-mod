@@ -7,6 +7,7 @@ on:
       - "src/**"
       - "!src/EMBC.ESS.*"
       - "src/EMBC.ESS.Shared.Contracts/**"
+      - "!src/build/**"
       - "src/build/Registrants/*API*"
       - ".github/workflows/ci-registrants-portal-api.yml"
 
