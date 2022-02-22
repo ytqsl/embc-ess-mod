@@ -5,7 +5,8 @@ on:
     types: [opened, reopened, edited, synchronize]
     paths:
       - "src/*.Registrants.UI/**"
-      - "src/build/Registrants/*UI*"
+      - "src/build/Registrants/Registrants.UI.Dockerfile"
+      - "src/build/Registrants/Caddyfile"
       - ".github/workflows/ci-registrants-portal-ui.yml"
 
 env:
@@ -18,5 +19,5 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build image
-        working-directory: ./registrants/src/UI
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+        working-directory: ./src
+        run: docker build . --file src/build/Registrants/Registrants.UI.Dockerfile --tag $IMAGE_NAME
