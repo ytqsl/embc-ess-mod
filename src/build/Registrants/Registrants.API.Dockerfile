@@ -24,7 +24,7 @@ RUN dotnet restore .
 COPY . .
 
 # run unit tests
-RUN dotnet test -c Release
+RUN dotnet test EMBC.Registrants.sln -c Release
 
 # build
 FROM build AS publish
