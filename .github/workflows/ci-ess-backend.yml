@@ -22,4 +22,4 @@ jobs:
 
       - name: Build image
         working-directory: ./src
-        run: tar -czh . | docker build -f ./build/ESS/ESS.Dockerfile --tag $IMAGE_NAME -
+        run: docker build . -f ./build/ESS/ESS.Dockerfile --tag $IMAGE_NAME

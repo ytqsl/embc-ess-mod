@@ -20,4 +20,4 @@ jobs:
 
       - name: Build image
         working-directory: ./src
-        run: docker build . --file src/build/Responders/Responders.UI.Dockerfile --tag $IMAGE_NAME
+        run: docker build . --file ./build/Responders/Responders.UI.Dockerfile --tag $IMAGE_NAME

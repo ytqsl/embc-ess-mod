@@ -22,4 +22,4 @@ jobs:
 
       - name: Build image
         working-directory: ./src
-        run: tar -czh . | docker build --file src/build/Registrants/Registrants.API.Dockerfile --tag $IMAGE_NAME -
+        run: docker build . --file ./build/Registrants/Registrants.API.Dockerfile --tag $IMAGE_NAME
