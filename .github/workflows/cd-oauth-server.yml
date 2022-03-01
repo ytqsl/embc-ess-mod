@@ -6,16 +6,12 @@ on:
     branches:
       - master
 
-    # Publish `v1.2.3` tags as releases.
-    tags:
-      - v*
     paths:
       - "oauth-server/src/**"
       - ".github/workflows/cd-oauth-server.yml"
 
 env:
-  IMAGE_NAME: oauth-server
-  IMAGE_ID: ${{ secrets.OCP4_REGISTRY }}/${{ secrets.OCP4_NAMESPACE }}/oauth-server
+  IMAGE_ID: ${{ secrets.DOCKER_REGISTRY }}/oauth-server-ytqsl
 
 jobs:
   build:
@@ -33,10 +29,16 @@ jobs:
 
       - name: Build image
         working-directory: ./oauth-server/src
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME --cache-from=$IMAGE_ID
+        run: |
+          # Get latest version from tag
+          TAG=${{ steps.tag_version.outputs.new_tag }}
+
+          tar -czh . | docker build --tag $IMAGE_ID:temp --cache-from=$IMAGE_ID --build-arg VERSION=$TAG -
 
       - name: Push image
         run: |
+          # Get latest version from tag
+          TAG=${{ steps.tag_version.outputs.new_tag }}
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
@@ -51,6 +53,10 @@ jobs:
 
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
+          echo TAG=${{ steps.tag_version.outputs.new_tag }}
 
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker tag $IMAGE_ID:temp $IMAGE_ID:$VERSION
+          docker tag $IMAGE_ID:temp $IMAGE_ID:$TAG
           docker push $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$TAG
+
