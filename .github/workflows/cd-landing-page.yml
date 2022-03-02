@@ -38,7 +38,7 @@ jobs:
         id: set_repository
         run: |
           # Change all uppercase to lowercase
-          DOCKER_REPOSITORY=$(${{ secrets.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[A-Z]' '[a-z]')
+          DOCKER_REPOSITORY=$(echo ${{ secrets.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[A-Z]' '[a-z]')
           echo "::set-output name=docker-repository::$DOCKER_REPOSITORY"
           
       - name: Pull image
