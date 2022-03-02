@@ -8,9 +8,9 @@ on:
     paths:
       - "suppliers/src/UI/**"
       - ".github/workflows/cd-suppliers-portal-ui.yml"
-      
+
 env:
-  IMAGE_NAME: /suppliers-portal-ui-ytqsl
+  IMAGE_NAME: suppliers-portal-ui-ytqsl
   WORKING_DIRECTORY: ./suppliers/src/UI
 
 jobs:
