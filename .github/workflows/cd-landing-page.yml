@@ -35,25 +35,32 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Set image repository
+        id: set_repository
         run: |
           # Change all uppercase to lowercase
-          export DOCKER_REPOSITORY=$(${{ secrets.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[A-Z]' '[a-z]')
-          echo "DOCKER_REPOSITORY=$DOCKER_REPOSITORY"
+          DOCKER_REPOSITORY=$(${{ secrets.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[A-Z]' '[a-z]')
+          echo "::set-output name=docker-repository::$DOCKER_REPOSITORY"
           
       - name: Pull image
+        env:
+          DOCKER_REPOSITORY: ${{ steps.set_repository.outputs.docker-repository }}
         run: docker pull $DOCKER_REPOSITORY:latest || true
 
       - name: Build image
+        env:
+          DOCKER_REPOSITORY: ${{ steps.set_repository.outputs.docker-repository }}
         working-directory: ./landing-page/src/
         run: |
           VERSION=$(echo "${{ steps.tag_version.outputs.new_tag }}" | sed 's/^[^=v]*=v//')
  
-          echo DOCKER_REPOSITORY=$DOCKER_REPOSITORY
+          echo DOCKER_REPOSITORY=${{ env.DOCKER_REPOSITORY }}
           echo VERSION=$VERSION          
  
-          tar -czh . | docker build --tag $DOCKER_REPOSITORY:latest --cache-from=$DOCKER_REPOSITORY:latest --build-arg VERSION=$TAG -
-          docker tag $DOCKER_REPOSITORY:latest $DOCKER_REPOSITORY:$VERSION
+          tar -czh . | docker build --tag ${{ env.DOCKER_REPOSITORY }}:latest --cache-from=${{ env.DOCKER_REPOSITORY }}:latest --build-arg VERSION=$TAG -
+          docker tag ${{ env.DOCKER_REPOSITORY }}:latest ${{ env.DOCKER_REPOSITORY }}:$VERSION
 
       - name: Push image
+        env:
+          DOCKER_REPOSITORY: ${{ steps.set_repository.outputs.docker-repository }}
         run: |
-          docker push --all-tags $DOCKER_REPOSITORY
+          docker push --all-tags ${{ env.DOCKER_REPOSITORY }}
