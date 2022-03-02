@@ -1,6 +1,6 @@
 # EMBC ESS Landing page
 
-Hosts static pages for EMBC ESS project ()
+The landing page for EMBC ESS. This web server hosts the public static html pages for ESS modernization project
 
 Stack:
 
