@@ -37,7 +37,7 @@ jobs:
       - name: Set image repository
         run: |
           # Change all uppercase to lowercase
-          export DOCKER_REPOSITORY=$(${{ secrets.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[A-Z]' '[a-z]'))
+          export DOCKER_REPOSITORY=$(${{ secrets.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[A-Z]' '[a-z]')
           echo "DOCKER_REPOSITORY=$DOCKER_REPOSITORY"
           
       - name: Pull image
