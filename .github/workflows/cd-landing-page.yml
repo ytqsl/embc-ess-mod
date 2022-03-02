@@ -52,7 +52,7 @@ jobs:
           DOCKER_REPOSITORY: ${{ steps.set_image_repository.outputs.docker-repository }}
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          VERSION=$(echo "${{ steps.tag_version.outputs.new_tag }}" | sed 's/^[^=v]*=v//')
+          VERSION=$(echo "${{ steps.tag_version.outputs.new_tag }}" | awk -F=v '{print $NF}')
  
           echo DOCKER_REPOSITORY=${{ env.DOCKER_REPOSITORY }}
           echo VERSION=$VERSION          
