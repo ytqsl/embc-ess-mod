@@ -11,6 +11,7 @@ on:
 
 env:
   IMAGE_NAME: landing-page-ytqsl
+  WORKING_DIRECTORY: ./landing-page/src/
 
 jobs:
   build:
@@ -20,13 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: ${{ env.IMAGE_NAME }}=v
-
       - name: Log into registry
         uses: docker/login-action@v1
         with:
@@ -35,21 +29,28 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Set image repository
-        id: set_repository
+        id: set_image_repository
         run: |
-          # Change all uppercase to lowercase
+          # Set image repository and change all uppercase to lowercase
           DOCKER_REPOSITORY=$(echo ${{ secrets.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[A-Z]' '[a-z]')
           echo "::set-output name=docker-repository::$DOCKER_REPOSITORY"
           
       - name: Pull image
         env:
-          DOCKER_REPOSITORY: ${{ steps.set_repository.outputs.docker-repository }}
+          DOCKER_REPOSITORY: ${{ steps.set_image_repository.outputs.docker-repository }}
         run: docker pull $DOCKER_REPOSITORY:latest || true
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: ${{ env.IMAGE_NAME }}=v
 
       - name: Build image
         env:
-          DOCKER_REPOSITORY: ${{ steps.set_repository.outputs.docker-repository }}
-        working-directory: ./landing-page/src/
+          DOCKER_REPOSITORY: ${{ steps.set_image_repository.outputs.docker-repository }}
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           VERSION=$(echo "${{ steps.tag_version.outputs.new_tag }}" | sed 's/^[^=v]*=v//')
  
@@ -61,6 +62,6 @@ jobs:
 
       - name: Push image
         env:
-          DOCKER_REPOSITORY: ${{ steps.set_repository.outputs.docker-repository }}
+          DOCKER_REPOSITORY: ${{ steps.set_image_repository.outputs.docker-repository }}
         run: |
           docker push --all-tags ${{ env.DOCKER_REPOSITORY }}
