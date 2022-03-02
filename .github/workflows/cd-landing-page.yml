@@ -11,7 +11,6 @@ on:
 
 env:
   IMAGE_NAME: landing-page-ytqsl
-  IMAGE_ID: ${{ secrets.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
 
 jobs:
   build:
@@ -35,22 +34,26 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Set image repository
+        run: |
+          # Change all uppercase to lowercase
+          export DOCKER_REPOSITORY=$(${{ secrets.DOCKER_REGISTRY }}/${{ IMAGE_NAME }} | tr '[A-Z]' '[a-z]'))
+          echo "DOCKER_REPOSITORY=${{ DOCKER_REPOSITORY }}"
+          
       - name: Pull image
-        run: docker pull $IMAGE_ID || true
+        run: docker pull $DOCKER_REPOSITORY:latest || true
 
       - name: Build image
         working-directory: ./landing-page/src/
         run: |
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           VERSION=$(echo "${{ steps.tag_version.outputs.new_tag }}" | sed 's/^[^:v]*:v//')
  
-          echo IMAGE_ID=$IMAGE_ID
+          echo DOCKER_REPOSITORY=$DOCKER_REPOSITORY
           echo VERSION=$VERSION          
  
-          tar -czh . | docker build --tag $IMAGE_ID:latest --cache-from=$IMAGE_ID --build-arg VERSION=$TAG -
-          docker tag $IMAGE_ID:latest $IMAGE_ID:$VERSION
+          tar -czh . | docker build --tag $DOCKER_REPOSITORY:latest --cache-from=$DOCKER_REPOSITORY:latest --build-arg VERSION=$TAG -
+          docker tag $DOCKER_REPOSITORY:latest $DOCKER_REPOSITORY:$VERSION
 
       - name: Push image
         run: |
-          docker push --all-tags $IMAGE_ID
+          docker push --all-tags $DOCKER_REPOSITORY
