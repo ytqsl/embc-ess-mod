@@ -10,7 +10,7 @@ using HandlebarsDotNet;
 
 namespace EMBC.ESS.Engines.Supporting.SupportGeneration.ReferralPrinting
 {
-    internal class ReferralHtmlGenerator
+    internal static class ReferralHtmlGenerator
     {
         public static readonly string PageBreak = $@"{Environment.NewLine}<div class=""page-break""></div>{Environment.NewLine}";
 
@@ -98,8 +98,7 @@ namespace EMBC.ESS.Engines.Supporting.SupportGeneration.ReferralPrinting
                 printedCount += 1;
                 var partialViewType = summary.Type;
                 var partialViewDisplayName = partialViewType.GetType()
-                        .GetMember(partialViewType.ToString())
-                        .First()
+                        .GetMember(partialViewType.ToString())[0]
                         .GetCustomAttribute<DisplayAttribute>()
                         .GetName();
                 handlebars.RegisterTemplate("titlePartial", partialViewDisplayName);

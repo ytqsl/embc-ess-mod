@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Bogus;
 using EMBC.ESS.Engines.Supporting.SupportGeneration.ReferralPrinting;
 using EMBC.Utilities.Extensions;
-using Org.BouncyCastle.Asn1.Ocsp;
 using Shouldly;
 using Xunit;
 
@@ -138,7 +137,7 @@ namespace EMBC.Tests.Unit.ESS.Prints
                         .RuleFor(o => o.Province, f => f.Address.State())
                         .Generate())
                     .RuleFor(o => o.Evacuees, f => f.Make(f.Random.Number(20), () => new Faker<PrintEvacuee>()
-                        .RuleFor(o => o.EvacueeTypeCode, f => f.PickRandom(new[] { "F", "A", "C" }))
+                        .RuleFor(o => o.EvacueeTypeCode, f => f.PickRandom("F", "A", "C"))
                         .RuleFor(o => o.FirstName, f => f.Person.FirstName)
                         .RuleFor(o => o.LastName, f => f.Person.LastName)
                         .Generate()))

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using AutoMapper;
 using EMBC.ESS.Utilities.Cas;
 using EMBC.ESS.Utilities.Dynamics.Microsoft.Dynamics.CRM;
 
@@ -42,13 +41,11 @@ namespace EMBC.ESS.Resources.Payments
     internal class CasGateway : ICasGateway
     {
         private readonly IWebProxy casWebProxy;
-        private readonly IMapper mapper;
         private readonly ICasSystemConfigurationProvider casSystemConfigurationProvider;
 
-        public CasGateway(IWebProxy casWebProxy, IMapper mapper, ICasSystemConfigurationProvider casSystemConfigurationProvider)
+        public CasGateway(IWebProxy casWebProxy, ICasSystemConfigurationProvider casSystemConfigurationProvider)
         {
             this.casWebProxy = casWebProxy;
-            this.mapper = mapper;
             this.casSystemConfigurationProvider = casSystemConfigurationProvider;
         }
 
@@ -143,7 +140,7 @@ namespace EMBC.ESS.Resources.Payments
                 SupplierName = Formatters.ToCasSupplierName(contact.firstname, contact.lastname)
             }, ct);
             if (response == null || !response.SupplierAddress.Any()) return null;
-            return (SupplierNumber: response.Suppliernumber, SiteCode: response.SupplierAddress.First().Suppliersitecode.StripCasSiteNumberBrackets());
+            return (SupplierNumber: response.Suppliernumber, SiteCode: response.SupplierAddress[0].Suppliersitecode.StripCasSiteNumberBrackets());
         }
 
         public async Task<IEnumerable<InvoiceItem>> QueryInvoices(string status, DateTime? statusChangedFrom, DateTime? statusChangedTo, CancellationToken ct)

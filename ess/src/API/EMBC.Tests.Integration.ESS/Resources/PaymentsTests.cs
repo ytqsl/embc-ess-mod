@@ -153,8 +153,8 @@ namespace EMBC.Tests.Integration.ESS.Resources
             response.Payments.ShouldNotBeEmpty();
             var expectedIds = new[] { "1234", "1235" };
             var notExpectedId = "9876";
-            response.Payments.Where(p => expectedIds.Contains(p.PaymentId)).Count().ShouldBe(2);
-            response.Payments.Where(p => p.PaymentId == notExpectedId).SingleOrDefault().ShouldBeNull();
+            response.Payments.Count(p => expectedIds.Contains(p.PaymentId)).ShouldBe(2);
+            response.Payments.SingleOrDefault(p => p.PaymentId == notExpectedId).ShouldBeNull();
             foreach (var payment in response.Payments)
             {
                 payment.StatusChangeDate.ShouldBeGreaterThanOrEqualTo(startDate.ToLocalTime());
@@ -227,7 +227,6 @@ namespace EMBC.Tests.Integration.ESS.Resources
         [Fact]
         public async Task SendPaymentToCas_InteracPayment_InvoiceNameShouldNotBePopulated()
         {
-            var manager = Services.GetRequiredService<EventsManager>();
             var registrantId = TestData.ContactId;
             var mockedCas = (MockCasProxy)Services.GetRequiredService<IWebProxy>();
 
@@ -268,9 +267,8 @@ namespace EMBC.Tests.Integration.ESS.Resources
         }
 
         [Fact]
-        public async Task ConvertPstToUtc()
+        public void ConvertPstToUtc()
         {
-            var registrantId = await CreateNewRegistrant();
             var tmp = DateTime.SpecifyKind(DateTime.Parse("07-SEP-2023 14:23:41"), DateTimeKind.Unspecified);
             tmp = tmp.FromUnspecifiedPstToUtc();
             tmp.Second.ShouldBe(41);

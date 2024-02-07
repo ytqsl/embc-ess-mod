@@ -8,7 +8,7 @@ namespace EMBC.ESS.Resources.Evacuations
     {
         Task<ManageEvacuationFileCommandResult> Manage(ManageEvacuationFileCommand cmd);
 
-        Task<EvacuationFileQueryResult> Query(EvacuationFilesQuery query);
+        Task<EvacuationFileQueryResult> Query(EvacuationFileQuery query);
     }
 
     public abstract class ManageEvacuationFileCommand

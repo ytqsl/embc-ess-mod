@@ -128,9 +128,9 @@ namespace EMBC.Tests.Integration.ESS.Managers.Events
 
             var file = (await manager.Handle(new EvacuationFilesQuery { FileId = fileId })).Items.ShouldHaveSingleItem();
 
-            file.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant == true && m.FirstName == profile.FirstName && m.LastName == profile.LastName);
-            file.NeedsAssessment.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant == true && m.FirstName == profile.FirstName && m.LastName == profile.LastName);
-            file.NeedsAssessment.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant == false && m.FirstName == $"{textContextIdentifier}-MemRegTestFirst" && m.LastName == $"{textContextIdentifier}-MemRegTestLast");
+            file.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant && m.FirstName == profile.FirstName && m.LastName == profile.LastName);
+            file.NeedsAssessment.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant && m.FirstName == profile.FirstName && m.LastName == profile.LastName);
+            file.NeedsAssessment.HouseholdMembers.ShouldContain(m => !m.IsPrimaryRegistrant && m.FirstName == $"{textContextIdentifier}-MemRegTestFirst" && m.LastName == $"{textContextIdentifier}-MemRegTestLast");
         }
 
         [Fact]
@@ -146,8 +146,8 @@ namespace EMBC.Tests.Integration.ESS.Managers.Events
 
             var savedFile = await GetEvacuationFileById(fileId);
             savedFile.PrimaryRegistrantId.ShouldBe(registrant.Id);
-            savedFile.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant == true && m.FirstName == registrant.FirstName && m.LastName == registrant.LastName);
-            savedFile.NeedsAssessment.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant == true && m.FirstName == registrant.FirstName && m.LastName == registrant.LastName);
+            savedFile.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant && m.FirstName == registrant.FirstName && m.LastName == registrant.LastName);
+            savedFile.NeedsAssessment.HouseholdMembers.ShouldContain(m => m.IsPrimaryRegistrant && m.FirstName == registrant.FirstName && m.LastName == registrant.LastName);
 
             savedFile.HouseholdMembers.Count().ShouldBe(file.NeedsAssessment.HouseholdMembers.Count());
             foreach (var member in file.NeedsAssessment.HouseholdMembers.Where(m => !m.IsPrimaryRegistrant))
@@ -180,9 +180,6 @@ namespace EMBC.Tests.Integration.ESS.Managers.Events
         [Fact]
         public async Task Update_EvacuationFileMultiplePrimaryRegistrants_ThrowsError()
         {
-            var now = DateTime.UtcNow;
-            now = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerSecond, now.Kind);
-
             var file = await GetEvacuationFileById(TestData.EvacuationFileId);
 
             var newPrimaryMember = new HouseholdMember
