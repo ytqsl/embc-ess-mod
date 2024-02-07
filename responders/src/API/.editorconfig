@@ -246,6 +246,18 @@ dotnet_diagnostic.S101.severity = suggestion
 # IDE0022: Use block body for methods
 dotnet_diagnostic.IDE0022.severity = suggestion
 
+# S2094: Classes should not be empty
+dotnet_diagnostic.S2094.severity = suggestion
+
+# RCS1194: Implement exception constructors
+dotnet_diagnostic.RCS1194.severity = suggestion
+
+# S6605: Collection-specific "Exists" method should be used instead of the "Any" extension
+dotnet_diagnostic.S6605.severity = suggestion
+
+# S6602: "Find" method should be used instead of the "FirstOrDefault" extension
+dotnet_diagnostic.S6602.severity = suggestion
+
 [*.vb]
 # Modifier preferences
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
