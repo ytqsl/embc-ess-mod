@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 
 namespace EMBC.Responders.API.Controllers
 {
@@ -32,16 +31,14 @@ namespace EMBC.Responders.API.Controllers
         private readonly IMessagingClient client;
         private readonly IMapper mapper;
         private readonly ICache cache;
-        private readonly IHostEnvironment environment;
         private const int cacheDuration = 60 * 1; //1 minute
 
-        public ConfigurationController(IConfiguration configuration, IMessagingClient client, IMapper mapper, ICache cache, IHostEnvironment environment)
+        public ConfigurationController(IConfiguration configuration, IMessagingClient client, IMapper mapper, ICache cache)
         {
             this.configuration = configuration;
             this.client = client;
             this.mapper = mapper;
             this.cache = cache;
-            this.environment = environment;
         }
 
         /// <summary>

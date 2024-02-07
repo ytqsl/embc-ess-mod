@@ -24,20 +24,6 @@ namespace EMBC.Registrants.API.Services
 
     public static class BcscUserInfoMapper
     {
-        //public static Profile GetDummyProfile(string userId) => MapBCSCUserDataToProfile(userId, JsonDocument.Parse(
-        //    $"{{" +
-        //    $"\"{BcscTokenKeys.GivenName}\": \"dummygiver\"," +
-        //    $" \"{BcscTokenKeys.FamilyName}\": \"dummyfamily\"," +
-        //    $" \"{BcscTokenKeys.BirthDate}\": \"2000-01-13\"," +
-        //    $" \"{BcscTokenKeys.Address}\": {{" +
-        //    $" \"{BcscTokenKeys.AddressStreet}\": \"dummystreet\"," +
-        //    $" \"{BcscTokenKeys.AddressRegion}\": \"BC\"," +
-        //    $" \"{BcscTokenKeys.AddressCountry}\": \"CA\"," +
-        //    $" \"{BcscTokenKeys.AddressPostalCode}\": \"V1V 1V1\"," +
-        //    $" \"{BcscTokenKeys.AddressLocality}\": \"Vancouver\"" +
-        //    $"}}" +
-        //    $"}}"));
-
         public static Profile MapBcscUserInfoToProfile(string userId, JsonDocument userData)
         {
             return new Profile
