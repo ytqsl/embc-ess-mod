@@ -7,6 +7,7 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <Nullable>enable</Nullable>
+        <UserSecretsId>5900b9ef-ddc4-425e-af77-ced76d899918</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
