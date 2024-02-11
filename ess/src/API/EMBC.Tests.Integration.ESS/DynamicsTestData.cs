@@ -80,6 +80,7 @@ namespace EMBC.Tests.Integration.ESS
         public DynamicsTestData(IEssContextFactory essContextFactory)
         {
             var essContext = essContextFactory.Create();
+            if (!essContext.BaseUri.AbsoluteUri.Contains("dev", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException($"Integration tests must be run only in DEV, but you are trying to connect to {essContext.BaseUri}");
             jurisdictions = essContext.era_jurisdictions.OrderBy(j => j.era_jurisdictionid).ToArray();
             canada = essContext.era_countries.Where(c => c.era_countrycode == "CAN").Single();
             bc = essContext.era_provinceterritorieses.Where(c => c.era_code == "BC").Single();
