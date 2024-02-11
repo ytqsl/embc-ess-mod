@@ -117,9 +117,6 @@ namespace EMBC.Utilities.Hosting
                     .Configure((WebHostBuilderContext ctx, IApplicationBuilder app) =>
                     {
                         Configure(app, ctx.Configuration, ctx.HostingEnvironment, assemblies);
-                    }).ConfigureLogging(logging =>
-                    {
-                        //logging.AddOpenTelemetry(opts => opts.AddConsoleExporter());
                     });
                 });
 
@@ -195,8 +192,6 @@ namespace EMBC.Utilities.Hosting
             services.Configure<ExceptionHandlerOptions>(opts => opts.AllowStatusCode404Response = true);
 
             services.ConfigureComponentServices(configuration, hostEnvironment, telemetryProvider, assemblies);
-
-            services.AddOpenTelemetry(appName);
 
             // add background tasks
             if (configuration.GetValue("backgroundTask:enabled", true))

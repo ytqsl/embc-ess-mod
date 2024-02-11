@@ -101,12 +101,6 @@ namespace EMBC.ESS.Resources.Payments
         public IEnumerable<(string Id, Exception Error)> FailedPayments { get; set; } = Array.Empty<(string, Exception)>();
     }
 
-    public class ReconcileSupplierIdsBatchRequest : ManagePaymentRequest
-    {
-        public string BatchId { get; set; }
-        public IEnumerable<string> RegitrantIds { get; set; } = Array.Empty<string>();
-    }
-
     public class ReconcileSupplierIdRequest : ManagePaymentRequest
     {
         public string BatchId { get; set; }

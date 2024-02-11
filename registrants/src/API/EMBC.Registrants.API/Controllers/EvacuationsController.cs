@@ -609,6 +609,7 @@ namespace EMBC.Registrants.API.Controllers
             if (method == SupportMethod.Unknown || category == SupportCategory.Unknown) throw new JsonException($"Could not determine the support method or category");
 
             //Dserialize to the correct type
+#pragma warning disable S2583 // Conditionally executed code should be reachable
             return category switch
             {
                 SupportCategory.Clothing => JsonSerializer.Deserialize<ClothingSupport>(ref reader, options),
@@ -622,6 +623,7 @@ namespace EMBC.Registrants.API.Controllers
                 SupportCategory.Transportation when subCategory == SupportSubCategory.Transportation_Other => JsonSerializer.Deserialize<TransportationOtherSupport>(ref reader, options),
                 _ => throw new NotSupportedException($"Support with method {method}, category {category}, sub category {subCategory}")
             };
+#pragma warning restore S2583 // Conditionally executed code should be reachable
         }
 
         public override void Write(Utf8JsonWriter writer, Support value, JsonSerializerOptions options)

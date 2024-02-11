@@ -192,7 +192,7 @@ namespace EMBC.Tests.Integration.ESS.Managers.Events
                 PrintRequestId = testPrintRequest.era_referralprintid.ToString(),
                 RequestingUserId = testPrintRequest._era_requestinguserid_value?.ToString()
             });
-            await File.WriteAllBytesAsync("./newTestPrintRequestFile.pdf", response.Content);
+            await Should.NotThrowAsync(async () => await File.WriteAllBytesAsync("./newTestPrintRequestFile.pdf", response.Content));
         }
 
         [Fact]

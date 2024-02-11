@@ -215,7 +215,7 @@ namespace EMBC.Tests.Integration.ESS.Managers.Events
 
             var issuedSupport = ((EMBC.ESS.Resources.Supports.SearchSupportQueryResult)await supportRepository.Query(new EMBC.ESS.Resources.Supports.SearchSupportsQuery
             {
-                ById = supportsToProcess.First().Id,
+                ById = supportsToProcess[0].Id,
                 ByStatus = EMBC.ESS.Resources.Supports.SupportStatus.Issued,
             })).Items;
 
@@ -232,7 +232,7 @@ namespace EMBC.Tests.Integration.ESS.Managers.Events
 
             var paidSupports = ((EMBC.ESS.Resources.Supports.SearchSupportQueryResult)await supportRepository.Query(new EMBC.ESS.Resources.Supports.SearchSupportsQuery
             {
-                ById = supportsToProcess.First().Id,
+                ById = supportsToProcess[0].Id,
                 ByStatus = EMBC.ESS.Resources.Supports.SupportStatus.Paid,
             })).Items;
 

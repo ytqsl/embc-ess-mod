@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using EMBC.ESS.Resources.Metadata;
 using EMBC.ESS.Resources.Teams;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,7 +45,6 @@ namespace EMBC.Tests.Integration.ESS.Resources
         [Fact]
         public async Task CanSaveTeam()
         {
-            var metaDataRepository = Services.GetRequiredService<IMetadataRepository>();
             var unavailableCommunities = (await teamRepository.QueryTeams(new TeamQuery())).Items.SelectMany(t => t.AssignedCommunities).Select(c => c.Code).ToArray();
             var allCommunities = TestData.Commmunities;
             var availableCommunities = allCommunities.Where(c => !unavailableCommunities.Any(uc => uc == c)).ToArray();
@@ -56,7 +54,7 @@ namespace EMBC.Tests.Integration.ESS.Resources
             if (!toAssign.Any(c => c.Code == TestData.ActiveTaskCommunity)) toAssign.Add(new AssignedCommunity { Code = TestData.ActiveTaskCommunity, DateAssigned = DateTime.UtcNow });
             team.AssignedCommunities = toAssign;
 
-            var updatedTeamId = await teamRepository.SaveTeam(team);
+            await teamRepository.SaveTeam(team);
 
             var updatedTeam = (await teamRepository.QueryTeams(new TeamQuery { Id = teamId })).Items.ShouldHaveSingleItem();
             updatedTeam.AssignedCommunities.Select(c => c.Code).OrderBy(c => c).ToArray().ShouldBe(team.AssignedCommunities.Select(c => c.Code).OrderBy(c => c).ToArray());

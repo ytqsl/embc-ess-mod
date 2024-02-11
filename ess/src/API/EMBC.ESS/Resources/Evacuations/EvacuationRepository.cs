@@ -33,7 +33,7 @@ namespace EMBC.ESS.Resources.Evacuations
             };
         }
 
-        public async Task<EvacuationFileQueryResult> Query(EvacuationFilesQuery query)
+        public async Task<EvacuationFileQueryResult> Query(EvacuationFileQuery query)
         {
             return query switch
             {

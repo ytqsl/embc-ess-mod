@@ -19,6 +19,7 @@ namespace EMBC.ESS.Utilities.Dynamics
         {
             await Task.CompletedTask;
             string? version = null;
+#pragma warning disable RCS1075 // Avoid empty catch clause that catches System.Exception
             try
             {
                 var ctx = essContextFactory.CreateReadOnly();
@@ -26,7 +27,9 @@ namespace EMBC.ESS.Utilities.Dynamics
             }
             catch (Exception)
             {
+                //do nothing
             }
+#pragma warning restore RCS1075 // Avoid empty catch clause that catches System.Exception
 
             return new[]
             {

@@ -38,7 +38,6 @@ namespace EMBC.ESS.Utilities.BceidWS
 
         public BCeIDSecurityContext GetSecurityContext()
         {
-            //TODO: ensure user is set in the http context and the correct claims are mapped here
             var requesterGuid = httpContextAccessor.HttpContext?.User?.FindFirst("user_guid")?.Value;
             var requesterBusinessType = httpContextAccessor.HttpContext?.User?.FindFirst("user_type")?.Value;
 

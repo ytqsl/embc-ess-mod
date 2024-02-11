@@ -56,7 +56,7 @@ namespace EMBC.ESS.Engines.Supporting.SupportGeneration.ReferralPrinting
 
         private string ConvertCarriageReturnToHtml(string value)
         {
-            return value?.Replace("\n", "<br />")?.Replace("\r", "<br />");
+            return (value ?? string.Empty).Replace("\n", "<br />").Replace("\r", "<br />");
         }
     }
 

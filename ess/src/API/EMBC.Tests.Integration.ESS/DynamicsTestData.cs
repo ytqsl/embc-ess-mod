@@ -22,8 +22,10 @@ namespace EMBC.Tests.Integration.ESS
         private readonly era_jurisdiction[] jurisdictions;
         private readonly contact testContact;
         private readonly era_task activeTask;
-        private readonly era_task inactiveTask;
+
+        //private readonly era_task inactiveTask;
         private readonly era_evacuationfile testEvacuationfile;
+
         private readonly era_evacuationfile testPaperEvacuationFile;
         private readonly era_supplier supplierA;
         private readonly era_supplier supplierB;
@@ -37,11 +39,11 @@ namespace EMBC.Tests.Integration.ESS
         public string TestPrefix => testPrefix;
         public string Team1Id => team1.era_essteamid.GetValueOrDefault().ToString();
         public string Team1Name => team1.era_name;
-        public string Team1CommunityId => team1.era_ESSTeam_ESSTeamArea_ESSTeamID.First()._era_jurisdictionid_value.GetValueOrDefault().ToString();
+        public string Team1CommunityId => team1.era_ESSTeam_ESSTeamArea_ESSTeamID[0]._era_jurisdictionid_value.GetValueOrDefault().ToString();
         public string Team2Id => team2.era_essteamid.GetValueOrDefault().ToString();
         public string Team3Id => team3.era_essteamid.GetValueOrDefault().ToString();
         public string Team4Id => team4.era_essteamid.GetValueOrDefault().ToString();
-        public string OtherCommunityId => jurisdictions.Last().era_jurisdictionid.GetValueOrDefault().ToString();
+        public string OtherCommunityId => jurisdictions[jurisdictions.Length - 1].era_jurisdictionid.GetValueOrDefault().ToString();
         public string Tier4TeamMemberId => team1Tier4Member.era_essteamuserid.GetValueOrDefault().ToString();
         public string OtherTeamMemberId => team2Tier1Member.era_essteamuserid.GetValueOrDefault().ToString();
         public string ActiveTaskId => activeTaskId;
@@ -78,6 +80,7 @@ namespace EMBC.Tests.Integration.ESS
         public DynamicsTestData(IEssContextFactory essContextFactory)
         {
             var essContext = essContextFactory.Create();
+            if (!essContext.BaseUri.AbsoluteUri.Contains("dev", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException($"Integration tests must be run only in DEV, but you are trying to connect to {essContext.BaseUri}");
             jurisdictions = essContext.era_jurisdictions.OrderBy(j => j.era_jurisdictionid).ToArray();
             canada = essContext.era_countries.Where(c => c.era_countrycode == "CAN").Single();
             bc = essContext.era_provinceterritorieses.Where(c => c.era_code == "BC").Single();
@@ -103,7 +106,7 @@ namespace EMBC.Tests.Integration.ESS
 
             this.activeTask = essContext.era_tasks.Where(t => t.era_name == activeTaskId).SingleOrDefault() ?? CreateTask(essContext, activeTaskId, DateTime.UtcNow);
 
-            this.inactiveTask = essContext.era_tasks.Where(t => t.era_name == activeTaskId).SingleOrDefault() ?? CreateTask(essContext, inactiveTaskId, DateTime.UtcNow.AddDays(-7));
+            //this.inactiveTask = essContext.era_tasks.Where(t => t.era_name == activeTaskId).SingleOrDefault() ?? CreateTask(essContext, inactiveTaskId, DateTime.UtcNow.AddDays(-7));
 
             this.testContact = essContext.contacts.Where(c => c.firstname == this.testPrefix + "-first" && c.lastname == this.testPrefix + "-last").SingleOrDefault() ?? CreateContact(essContext);
 
